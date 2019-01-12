@@ -3,18 +3,200 @@
 \usepackage{fullpage} % Package to use full page
 \usepackage{parskip} % Package to tweak paragraph skipping
 \usepackage{tikz} % Package for drawing
-\usepackage{amsmath}
+\usepackage{amsmath, amssymb}
+\usepackage[amsthm, thmmarks]{ntheorem}
 \usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
 
-\title{Understanding the Derivative}
-\author{Vincent Knight}
-\date{1984/02/14}
+\theoremstyle{break}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Nu}{\mathcal{N}}
+\newcommand{\Ra}{\mathcal{R}}
+\newcommand{\Mat}[2]{\mathbb{M}(#1, #2)}
+
+\newcommand{\pll}{\parallel}
+
+\title{Mathematics behind Machine Learning Algorithms}
+\author{Hubert Beres}
+\date{2018/01/08}
 
 \begin{document}
 
 \maketitle
 
 \section{Introduction}
+\subsection{Conventions}
+\begin{enumerate}
+    \item Vectors are by default column vectors,
+    \item Matrices are real,
+    \item Orthogonal vectors are denoted by $ v \perp w$
+    \item $\Nu(H)$ resp. $\Ra(H)$ denote the null space resp. the range of a matrix $H$, 
+\end{enumerate}
+\subsection{Problem overview}
+\begin{enumerate}
+    \item Recently we face many problems where objective is to guess a function of multiple variables (features) based on multiple examples (values at particular points)
+    \item discuss high computational complexity and 
+    \item define basic ML terminology: test set, label, (parametric) model, error function, test error, search space for function parameters
+    \item particular case is Multiple Regression
+    \item argue why small parameter values are generally considered better (over-fitting issues)
+
+\end{enumerate}
+
+\begin{definition}[Multiple Regression]
+    Given a real-valued $ n \times m$ matrix $T$ and a n-vector $l$ a Multiple Regression Model is a linear map $f \in \mathcal{L} ( \R ^n, \R)$ represented by a $ 1 \times n$ matrix $w$ such that
+    \begin{equation}
+        \| T w - l \| = \inf\limits_{x \in \R^n} \| T x - l \|
+    \end{equation}
+\end{definition}    
+
+\section{Optimisation tools}
+Goal: solving for Multiple Regression
+Error function: squared residuals
+Model: linear map
+
+\subsection{Moore-Penrose pseudoinverse}
+\subsubsection{Facts from Linear Algebra}
+
+\begin{theorem}[Orthogonal decomposition]
+    Let $z \in \R^n$ and $V \subset \R^n$ be a vector subspace. Then
+    \begin{enumerate}
+        \item We write $z \perp V$ when $ z \perp x$ for every $x \in V$.
+        \item Orthogonal complement of $V$ is $V^\perp := \{ v \in \R^n : v \perp V\}$
+        \item There exist unique $z_\perp \in V^\perp$ and $z_\pll \in V$ such that  
+            \begin{equation}
+                z = z_\perp + z_\pll
+            \end{equation}
+        \item For any $y \in V$
+        \begin{equation}
+                \| z - y \| \geq \| z - z_\pll \|
+        \end{equation}
+        with strict inequality whenever $y \neq z_\pll$
+    \end{enumerate}
+\end{theorem}
+\begin{proof}
+    Proof of inequality.
+\end{proof}
+
+\begin{theorem}
+    $\Nu(H) = \Ra^\perp(H^T)$ for any matrix $H \in \Mat{n}{m}$.
+\end{theorem}
+
+\begin{corollary}
+\begin{enumerate}
+    \item  $\Nu^\perp(H) = \Ra(H^T)$
+    \item  For every vector $z \in R^n$ there exists unique decomposition $z = z_\Ra + z_\Nu$ where $z_\Ra \in \Ra(H)$ and $z_\Nu \in \Nu(H^T)$.
+\end{enumerate}
+\end{corollary}
+\begin{proof}
+    Full proof
+\end{proof}
+
+\begin{lemma}[Symmetric matrices]
+\begin{enumerate}
+    \item For symmetric matrix A $\Nu(A) = \Ra^\perp(A)$ and $\Nu^\perp(A) = \Ra(A)$
+    \item Matrices of the form $H^T H$ and $H H^T$ are always symmetric,
+    \item $\Ra(H) = \Ra(H H^T)$ and $\Ra(H^T) = \Ra(H^T H)$
+\end{enumerate}
+\end{lemma}
+
+\subsection{Moore-Penrose pseudoinverse}
+
+\begin{theorem}
+\begin{enumerate}
+    \item With $H$ as above and $z \in \R^n$ the set
+        \begin{equation*}
+        X := \{ x \in \R^n : \| z - H x \| = \inf\limits_{y \in \R^n} \| z - H y \| \}
+        \end{equation*}
+        is not empty, i.e. there is a vector $x$ minimising $\| z - H x \|$.
+    \item There is a unique vector $\hat{x}$ with minimum norm in X.
+    \item $\hat{x}$ is the unique vector in $\Ra(H^T)$ which satisfies $Hx = z_\Ra$ where $z_\Ra$ is a projection of z on $\Ra(H)$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+    Full proof
+\end{proof}
+
+\begin{lemma}
+    For any nonzero $\delta$ the matrix $H^T H + \delta^2 * I_m$ is invertible.
+\end{lemma}
+\begin{proof}
+    Full proof.
+\end{proof}
+
+\begin{lemma}
+    For a real symmetric matrix A, the below exists:
+    \begin{equation}
+        P_A = \lim_{\delta \to 0} A ( A + \delta I) ^-1
+            = \lim_{\delta \to 0} ( A + \delta I) ^-1 A
+    \end{equation}
+    
+\end{lemma}
+\pagebreak
+\section{Neural networks}
+Key difference: non-linear model
+Def. Activation function
+Def. Activation bias
+
+$H \in \Mat{n}{m}$
+\subsection{Context and motivation}
+A paragraph
+\subsection{Definitions}
+\subsection{Learning}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\pagebreak
+\section{Sample usage (from template)}
 
 Differentiation is a concept of Mathematics studied in Calculus. There is an ongoing discussion as to who was the first to define differentiation: Leibniz or Newton \cite{bardi2006calculus}.
 
