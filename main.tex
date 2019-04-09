@@ -36,7 +36,7 @@
 
 \title{Mathematics behind Machine Learning Algorithms}
 \author{Hubert Beres}
-\date{2018/01/08}
+% \date{2018/01/08}
 
 \begin{document}
 
@@ -116,13 +116,13 @@ With this motivation we first look into the simplest parametric model: linear re
         \| T w - l \| = \inf\limits_{x \in \R^n} \| T x - l \|
     \end{equation}
 \end{definition}
-A similar definition \ref{def} can be written for multivariate linear regression where $ f \in \mathcal{L} ( \R ^n, \R^m)$. Finding the optimal parameters in such case is performed separately for every output variable. Hence, for the sake of simplicity we'll focus on real-valued functions.
+A similar definition can be written for multivariate linear regression where $ f \in \mathcal{L} ( \R ^n, \R^m)$. Finding the optimal parameters in such case is performed separately for every output variable. Hence, for the sake of simplicity we'll focus on real-valued functions.
 
 In the following two sections I explore algebraic background that shows $ w $ can indeed be found and develop tools for computing it, given a matrix $T$ representing the training set and the vector of labels $l$.
 
 \section{Facts from Linear Algebra}
 
-I start by stating several theorems that are parts of the curricula for the second year or are closely related to the familiar notions of vector (sub)space, range and null space. The first result provides a useful way of decomposing a vector into two components, exactly one lying inside a vector subspace. Uniqueness of such decomposition will be useful when showing uniqueness of our optimal solution for the regression problem.
+We start by stating several theorems that are parts of the curricula for the second year or are closely related to the familiar notions of vector (sub)space, range and null space. The first result provides a useful way of decomposing a vector into two components, exactly one lying inside a vector subspace. Uniqueness of such decomposition will be useful when showing uniqueness of our optimal solution for the regression problem.
 
 \subsection{Conventions}
 \begin{enumerate}
@@ -133,38 +133,27 @@ I start by stating several theorems that are parts of the curricula for the seco
 \end{enumerate}
 
 \subsection{Orthogonal decomposition}
+As introduced in the Geometry module, we define two vectors as perpendicular (denoted by $ a \perp b$) if and only if their scalar product is 0. Given a vector subspace $V \in \R^n$ we can think about vectors perpendicular to all its elements and denote them as $z \perp V$. We call a set of all such vectors the orthogonal complement of $V$:
+$$ V^\perp := \{ v \in \R^n : v \perp V\} $$
+Notice that $V^\perp \cap V = \{0\}$ and that $V^\perp$ is itself a vector subspace since scalar product is linear. The following theorem provides a widely useful decomposition of an arbitrary vector:
 
 \begin{theorem}[Orthogonal decomposition] \label{thm:projection}
     Let $z \in \R^n$ and $V \subset \R^n$ be a vector subspace. Then
-    \begin{enumerate}
-        \item We write $z \perp V$ when $ z \perp x$ for every $x \in V$.
-        \item Orthogonal complement of $V$ is $V^\perp := \{ v \in \R^n : v \perp V\}$
-        \item There exist unique $z_\perp \in V^\perp$ and $z_\pll \in V$ such that  
-            \begin{equation}
-                z = z_\perp + z_\pll
-            \end{equation}
-        \item For any $y \in V$
-        \begin{equation}
-                \| z - y \| \geq \| z_\perp \|
-        \end{equation}
-        with strict inequality whenever $y \neq z_\pll$
-    \end{enumerate}
+    There exist unique $z_\perp \in V^\perp$ and $z_\pll \in V$ such that  
+    \begin{equation}
+        z = z_\perp + z_\pll
+    \end{equation}
 \end{theorem}
-I'll present only a proof of the inequality (4) as statements (1-3) have been covered in Geometry module.
+
 \begin{proof}
-    Let $ y \in V $, implying $ z_\pll - y \in V$. Consider the right hand side:
-    $$ \| z - y \|^2 = \| (z_\pll - y) + z_\perp \|^2 = \| z_\pll - y \|^2 + \| z_\perp \|^2 $$
-    Where in the last equality we use the fact that $ z_\perp \perp V$,
-    in particular $ z_\perp \perp (z_\pll - y)$.
-    
-    It is now clear that $ \| z - y \|^2 \geq \| z_\perp \|^2 $ with equality only if $ y = z_\pll$.
+    The proof has been presented in Geometry module.
 \end{proof}
 
-In case of finite-dimensional vector spaces we're interested in, the dimension formula
+As we are interested only in finite-dimensional vector spaces the dimension formula
 \begin{equation}\label{eq:dim_formula}
     dim(U + V) = dim(U) + dim(V) - dim( U \cap V)
 \end{equation}
-allows us to conclude an important property of the complement operator defined above:
+allows us to conclude an important property of the complement defined above:
 
 \begin{lemma}\label{lem:double_perp}
     If $W$ is a finite-dimensional vector space and $V$ is its subspace then
@@ -175,18 +164,18 @@ allows us to conclude an important property of the complement operator defined a
     Pick an $x \in V$. By definition $ V^\perp = \{ y \in W : y \perp x \text{for all } x \in V \}$ hence for every $y \in V^\perp $ there is $x \perp y$. On the other hand $ (V^\perp)^\perp = \{ x \in W : x \perp y \text{for all } y \in V^\perp \}$ so $x \in (V^\perp)^\perp$, i.e.
     $$ V \subset (V^\perp)^\perp$$
 
-    Since dot product is a linear operator it is easy to see that $V^\perp$ is itself a vector subspace of $W$.
     Now as $W = V + V^\perp$ is finite-dimensional, let $dim(W) = n$ and $dim(V) = k$. 
     As we know that $V \cap V^\perp = \{0\}$, by the dimension formula (\ref{eq:dim_formula}) we have
     $$ dim(V^\perp) = dim(W) - dim(V) = n - k $$
     We can apply the dimension formula again, noting that $ V^\perp \cap (V^\perp)^\perp = \{0\} $ to get:
     $$ dim((V^\perp)^\perp) = dim(W) - dim(V^\perp) = n - n + k = k $$
-    
+
     We have shown $ V \subset (V^\perp)^\perp$ and $ dim(V) = dim((V^\perp)^\perp)$,
     hence $ V = (V^\perp)^\perp$.
 \end{proof}
-Once we have defined orthogonal subspaces and vectors it comes handy to relate them with notions of null space and range. The key result is a characterisation of a null space presented below:
 
+Once we have defined an orthogonal complement it comes handy to relate them with notions of null space and range.
+The key result is a characterisation of a null space presented below:
 
 \begin{theorem} \label{thm:charact_nullspace}
     For any matrix $H \in \Mat{n}{m}$ the null space of $H$ is equal to perpendicular complement of $H^T$ in $\R^m$, i.e.
@@ -194,7 +183,7 @@ Once we have defined orthogonal subspaces and vectors it comes handy to relate t
 \end{theorem}
 
 \begin{proof}
-    For any $x \in \Nu(H)$ we have $H x = 0$ by definition, implying $ y^T H x = 0$ for any $y \in \R^n$. Now
+    Pick any $x \in \Nu(H)$ we have $H x = 0$, implying $ y^T H x = 0$ for any $y \in \R^n$. Now
     $$  y^T H x = (H^T y )^T x = 0$$
     which means that $x$ is orthogonal to all vectors of the form $ H^T y $, i.e. $ x \perp \Ra(H^T)$, showing $ \Nu(H) \subset \Ra^\perp(H^T)$. To see the other inclusion take $ y \in \Ra(H^T) $ and conclude from the above equation that $ H x = 0$, i.e. $ x \in \Nu(H)$.
 \end{proof}
@@ -215,18 +204,21 @@ Moreover, Theorem \ref{thm:charact_nullspace} provides another useful way of dec
 \end{proof}
 
 \subsection{Symmetric matrices}
-We close this section with a few remarks on symmetric matrices and subspaces they generate. The importance of these results comes from the fact that symmetric matrices are always diagonalizable in $\R$ and hence <...>
+We close this section with a few remarks on symmetric matrices and subspaces they generate. The importance of these results comes from the fact that symmetric matrices are always diagonalizable in $\R$ and hence play an important role in finding eigenvalues which come out to be closely related to our regression optimisation problem. 
 
 \begin{lemma} \label{lem:charact_sym_nullspace}
     If $A$ is a symmetric matrix then $\Nu(A) = \Ra^\perp(A)$ and $\Nu^\perp(A) = \Ra(A)$.
-    Also, matrices of the form $H^T H$ and $H H^T$ are symmetric for arbitrary $H \in \Mat{n}{m}$.
 \end{lemma}
-
 \begin{proof}
-    The first claim follows immediately from Theorem \ref{thm:charact_nullspace} when we substitute $A = A^T$.
-    
-    The second statement can be checked directly:
-    $$(H^T H)^T = H^T (H^T)^T = H^T H \text{ and } (H H^T)^T = H H^T$$.
+    The claim follows immediately from Theorem \ref{thm:charact_nullspace} when we substitute $A^T = A$.
+\end{proof}
+
+\begin{lemma}
+Matrices of the form $H^T H$ and $H H^T$ are symmetric for arbitrary $H \in \Mat{n}{m}$.
+\end{lemma}
+\begin{proof}
+    Direct check shows:
+    $$(H^T H)^T = H^T (H^T)^T = H^T H \text{ and } (H H^T)^T = H H^T$$~
 \end{proof}
 
 \begin{lemma}
@@ -236,7 +228,12 @@ We close this section with a few remarks on symmetric matrices and subspaces the
 \end{lemma}
 
 \begin{proof}
-    We'll show mutual inclusion for the first equality. To prove that $\Nu(H) \subset \Nu(H^T H)$ pick $x$ such that $H x = 0$. Multiplying both sides by $H^T$ we get $ H^T H x = H^T 0 = 0 $ implying $x \in \Nu(H^T H) $. To show the other inclusion, pick $x \neq 0$ such that $H^T H x = 0$. Multiply from the right by $x^T$ to get $ x^T H^T H x = (H x)^T H x = \| H x \|^2 = 0 $ implying $ H x =0 $ as required.
+    We'll show mutual inclusion for the first equality. To prove that $\Nu(H) \subset \Nu(H^T H)$ pick $x$ such that $H x = 0$. Multiplying both sides by $H^T$ we get
+    $$ H^T H x = H^T 0 = 0 $$
+    implying $x \in \Nu(H^T H) $.
+    To show the other inclusion, pick $x \neq 0$ such that $H^T H x = 0$. Multiply from the right by $x^T$ to get
+    $$ x^T H^T H x = (H x)^T H x = \| H x \|^2 = 0 $$
+    implying $ H x =0 $ as required.
     
     The second equality of the lemma follows by a similar argument.
 \end{proof}
@@ -245,7 +242,7 @@ Perhaps the most interesting part of the above proof is the technique of complet
 
 An immediate corollary of Lemma \ref{lem:nullspaces_hht} provides analogous relationships between ranges:
 
-\begin{corollary}
+\begin{corollary}\label{cor:equal_ranges}
     For an arbitrary matrix $H$,
     $$\Ra(H) = \Ra(H H^T) \text{ and } \Ra(H^T) = \Ra(H^T H)$$
 \end{corollary}
@@ -258,7 +255,7 @@ An immediate corollary of Lemma \ref{lem:nullspaces_hht} provides analogous rela
     $$ \Ra^\perp (H^T) = \Ra^\perp ( H^T H ) $$
     or, by Lemma \ref{lem:double_perp}:
     $$ \Ra (H^T) = \Ra( H^T H ) $$
-    as required. The other formula follows by the same argument.
+    as required. The other formula follows by a similar argument.
 \end{proof}
 
 
@@ -267,13 +264,15 @@ Linear Algebra addresses a fundamental problem of solving a system of linear equ
 $$ A x - b = 0$$
 by introducing a notion of matrix inverse. If $x$ is a vector of unknown variables and certain conditions are met (including $A$ being a square matrix) one can obtain the solution as: $ x = A^{-1} b $. As our problem of Multivariate Regression is almost identical in structure
 $$ \inf \| T x - l \| $$
-we would be interested in finding an analogous operation, say $ T \to T^+$ such that $ w = T^+ l$ where $w$ is a vector of coefficients minimising the training error. Unfortunately we can't use the matrix inverse as in all practical circumstances we expect $T$ to be rectangular (amount of test samples should be much bigger than number of parameters!). On the other hand we don't hope to find an exact solution $ T w = l$ but rather just make the vectors $T w$ and $l$ ``as close as possible" under the standard norm.
+we would be interested in finding an analogous operation, say $ T \to T^+$ such that $ w = T^+ l$ where $w$ is a vector of coefficients minimising the training error. Unfortunately we cannot use the matrix inverse as in all practical circumstances we expect $T$ to be rectangular (amount of test samples should be much bigger than number of parameters)! On the other hand we don't hope to find an exact solution $ T w = l$ but rather just make the vectors $T w$ and $l$ ``as close as possible" under the standard norm.
 
 This trade-of between precision of the solution and its guaranteed existence motivates defining the Moore-Penrose pseudoinverse.
+
+\subsection{Derivation}
 First of all, we should make sure that the operator $T^+$ can be well defined, i.e. that given a multiple regression problem there exists a single vector of "the best" coefficients, minimising the training error. The following theorem assures that the solutions exist and provides an interesting way of picking the best vector among those yielding the same error.
 
-\begin{theorem}
-With $H$ as above and $z \in \R^n$
+\begin{theorem}\label{thm:regression_solution}
+With a matrix $H$ as above and $z \in \R^n$
 \begin{enumerate}
     \item The set
         \begin{equation*}
@@ -285,11 +284,11 @@ With $H$ as above and $z \in \R^n$
 \end{enumerate}
 
 \end{theorem}
-\begin{proof}
+\begin{proof} % rework, using the shorter proof
     First write $z$ as $z = z_\pll + z_\perp$ with $z_\pll \in \Nu(H^T)$.
     By definition of range $H x \in \Ra(H)$ and so
     $$ z_\perp - H x \in \Ra(H) ~~ \implies ~~ z_\pll \perp z_\perp - H x $$
-    As the dot product of these two vectors is zero, we can use inequality 4 from Theorem \ref{thm:projection} to obtain the following lower bound:
+    As the scalar product of these two vectors is zero, we can use inequality 4 from Theorem \ref{thm:projection} to obtain the following lower bound:
     \begin{equation}\label{eq:upper_bound}
     \| z - H x \|^2 = \| z_\pll + z_\perp - H x \|^2 =
     \| z_\perp \|^2 + \| z_\pll - H x \|^2 + 2 \langle z_\perp, z_\pll - H x \rangle^2 = 
@@ -343,7 +342,7 @@ Hence $\Nu(H^T H + \delta^2  I_m) = \{0\} $, i.e. it is invertible.
 \begin{lemma}\label{lem:limit_existence_1}
     For a real symmetric matrix A, the following two limits exist and are equal:
     \begin{equation}
-        P_A = \lim_{\delta \to 0} A ( A + \delta I) ^{-1}
+        H^+ := \lim_{\delta \to 0} A ( A + \delta I) ^{-1}
             = \lim_{\delta \to 0} ( A + \delta I) ^{-1} A
     \end{equation}
 \end{lemma}
@@ -356,8 +355,8 @@ Hence $\Nu(H^T H + \delta^2  I_m) = \{0\} $, i.e. it is invertible.
         A = T D T^T = T D T^{-1}
     \end{equation}
     
-    Let $ \delta_0 := min\{ | \lambda_i | : i \in {1, 2, \ldots, n}, \lambda_i \neq 0 \}$ - the smallest non-zero magnitude.
-    Pick $ \delta$ such that $ 0 <  | \delta | < \delta_0$.
+    Let $ \delta_0 := min\{ | \lambda_i | : i \in {1, 2, \ldots, n}, \lambda_i \neq 0 \}$ - the smallest non-zero magnitude of an eigenvalue.
+    Restrict $ \delta$ so that $ 0 <  | \delta | < \delta_0$.
     
     Now $(A + \delta I)$ is non-singular since for $ \| x \| = 1$ we have $ \| A x \| \geq \delta_0 > \delta$
     implying $ \| (A + \delta I) x \| > 0 $.
@@ -377,7 +376,7 @@ Hence $\Nu(H^T H + \delta^2  I_m) = \{0\} $, i.e. it is invertible.
     An analogous argument works for the other limit.
 \end{proof}
 
-Now we are finally in position to define Moore-Penrose pseudoinverse:
+Notice that it came out that $ H^+ z = z_\pll$ meaning that multiplication by $H^+$ projects $z$ onto $\Ra(A)$. Now we are finally in position to define Moore-Penrose pseudoinverse:
 
 \begin{definition}
     Let $H$ be an $ n \times m $ real-valued matrix.
@@ -387,19 +386,30 @@ Now we are finally in position to define Moore-Penrose pseudoinverse:
 
 Note that in the special case when $H$ is invertible, this definition yields $H^+ = H^{-1}$. This is an expected property since if $H$ is invertible, there exists an exact solution to $ H x = z $ computed as $ H^{-1} z$.
 
-We know by Lemma \ref{lem:limit_existence_1} that $H^+$ is well defined since $H^T H$ is symmetric, as shown in Lemma \ref{lem:charact_sym_nullspace}. The following theorem shows that $ H^+$ indeed provides a minimum norm solution to the multiple regression:
+We have seen in Lemma \ref{lem:charact_sym_nullspace} that $H^T H$ is symmetric which means $H^+$ is well defined by Lemma \ref{lem:limit_existence_1}. The following theorem shows that $ H^+$ indeed provides a minimum norm solution for the multiple regression:
 
 \begin{theorem}\label{thm:mp_solves_regression}
     For any $H$ and $z$ of appropriate dimensions, the vector $a = H^+ z$ is the one of minimal norm minimising $ \| z - H x \| $.
 \end{theorem}
 
 \begin{proof}
-    Full proof.
+    Again, decompose $z$ into projections $z_\pll \in \Ra(H)$ and $z_\perp \in \Ra(H)^\perp = \Nu(H^T)$ and let $x_0$ belong to the preimage of $z_\pll$ i.e. $H x_0 = z_\pll$. Notice that
+        $$ H^T z = H^T z_\pll = H^T H x_0$$
+    so the Moore-Penrose pseudoinverse of $z$ can now be written as:
+        $$ a = H^+ z
+         = \lim_{\delta \to 0} (H^T H + \delta^2 I)^{-1} H^T H x_0
+        $$
+    As noted after the proof of Lemma \ref{lem:limit_existence_1}, $a$ is a projection of $x_0$ onto the range of $ A = H^T H $, while by Corollary \ref{cor:equal_ranges} we have $\Ra(H^T) = \Ra(H^T)$.
+    Hence $a$ is a projection of $x_0$ onto $\Ra(H^T)$ which, as in proof of Theorem \ref{thm:regression_solution} is the unique minimal norm solution for multiple regression.
 \end{proof}
 
-The following corollary is very important as it expresses various projections discussed in the previous paragraphs in terms of the pseudoinverse. This is vital for practical applications as once $ H^+ $ is known, the projections can be computed just by matrix multiplication.
+\subsection{Properties and applications}
 
-\begin{corollary}
+Below we present without proof several results about the properties of the pseudoinverse itself and its applications
+
+The following corollary is very useful as it expresses various projections discussed in the previous sections in terms of the pseudoinverse; once $ H^+ $ is known, the projections can be computed just by matrix multiplication. The proof is based on Theorem \ref{thm:mp_solves_regression} combined with various characterisations of ranges and null-spaces we have derived above.
+
+\begin{lemma}
     For any vectors $z$ and $x$
     \begin{enumerate}
         \item $ H H^+ z $ is the projection of $z$ on $\Ra(H)$
@@ -407,17 +417,30 @@ The following corollary is very important as it expresses various projections di
         \item $ H^+ H x$ is the projection of $x$ on $ \Ra(H^T)$
         \item $ (I - H H^+) $ is the projection of $x$ on $ \Nu(H)$
     \end{enumerate}
-\end{corollary}
+\end{lemma}
 
-The proof is based on Theorem \ref{thm:mp_solves_regression} combined with various characterisations of ranges and null-spaces we have derived above. I skip it as not particularly illuminating.
+To better understand the structure of pseudoinverse matrix, it is helpful to consider several special cases:
+\begin{lemma}[Scalar matrix]
+    For a 1 by 1 matrix H the pseudoinverse is given by:
+    $$ H^+ = \begin{cases}
+        0~~~           \text{ if } H = 0\\
+        \frac{1}{H}~~ \text{ if } H \neq 0
+    \end{cases}$$
+\end{lemma}
+\begin{lemma}[Diagonal matrix]
+    If $D = diag(d_1, d_2, ..., d_n)$ is a diagonal matrix then
+    $$ D^+ = diag(d_1^+, d_2^+, ..., d_n^+) $$
+\end{lemma}
+\begin{lemma}[Symmetric matrix]
+    If $A$ is a symmetric matrix diagonalized as $A = T D T^T $ then
+    $$ A^+ = T D^+ T^T$$
+\end{lemma}
 
-
-
-
-
-
-
-
+Observing behaviour of the pseudoinverse for eigenvalues close to zero we see a discontinuity: small but non-zero value results in a large inverse while zero is mapped to zero. This phenomenon makes it challenging to compute pseudoinverse directly from the definition in a numerically stable way. Luckily, an alternative formula can be derived which is based on singular value decomposition. This method is nowadays the most popular in computer libraries. Detailed discussion is out of scope of this essay, yet we state the result:
+\begin{lemma}[SVD]
+    For a positive semidefinite normal matrix $H$ with singular value decomposition $H = U \Sigma V^*$ where $U$ and $V$ are unitary matrices and $\Sigma$ is a rectangular diagonal matrix with non-negative entries, the pseudoinverse can be written as:
+    $$ H^+ = V \Sigma^+ U^* $$
+\end{lemma}
 \pagebreak
 \section{Neural networks}
 The second part of this essay is dedicated to an alternative method of approximating a function $ f : \R^n \to \R$, based on prior knowledge of $f$ evaluated at the training set. The key difference is that we now allow our estimate to be non-linear. Of course expanding search space means we use much more parameters to describe $f$, in turn making the optimisation problem significantly harder to solve. Only modern advances in computer algebra and computing power made such approach feasible in real-life scenarios.
