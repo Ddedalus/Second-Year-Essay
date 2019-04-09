@@ -122,9 +122,8 @@ In the following two sections I explore algebraic background that shows $ w $ ca
 
 \section{Facts from Linear Algebra}
 
+\footnote{This section is a selection of statements from introduction in \bib  adjusted to knowledge from Algebra courses. Proofs are inspired there except for \ref{lem:double_perp} which is my own improvisation.}
 We start by stating several theorems that are parts of the curricula for the second year or are closely related to the familiar notions of vector (sub)space, range and null space. The first result provides a useful way of decomposing a vector into two components, exactly one lying inside a vector subspace. Uniqueness of such decomposition will be useful when showing uniqueness of our optimal solution for the regression problem.
-
-This section is a selection of statements from introduction in \bib adjusted to knowledge from Algebra courses. Proofs are inspired there except for \ref{lem:double_perp} which is my own improvisation.
 
 \subsection{Conventions}
 \begin{enumerate}
@@ -194,17 +193,6 @@ A very similar proof leads to a complementary statement:
     $$\Nu^\perp(H) = \Ra(H^T)$$
 \end{corollary}
 
-Moreover, Theorem \ref{thm:charact_nullspace} provides another useful way of decomposing vectors in $\R^n$, this time with respect to their properties related to a matrix $H$.
-\begin{corollary}
-    For every vector $z \in R^n$ there exists unique decomposition where $z_\Ra \in \Ra(H)$ and $z_\Nu \in \Nu(H^T)$:
-    $$z = z_\Ra + z_\Nu$$
-\end{corollary}
-
-\begin{proof}
-    Given $ z \in \R^n$  apply theorem \ref{thm:projection} with $\Ra(H)$ as the vector subspace to get unique
-    $ z = z_\perp + z_\pll$ with $z_\perp \in \Ra^\perp(H)$. By Theorem \ref{thm:charact_nullspace} applied to $H^T$ we get $\Ra^\perp(H) = \Nu(H^T)$, completing the proof as we set $z_\Ra := z_\pll$ and $z_\Nu := z_\perp$.
-\end{proof}
-
 \subsection{Symmetric matrices}
 We close this section with a few remarks on symmetric matrices and subspaces they generate. The importance of these results comes from the fact that symmetric matrices are always diagonalizable in $\R$ and hence play an important role in finding eigenvalues which come out to be closely related to our regression optimisation problem. 
 
@@ -262,6 +250,7 @@ An immediate corollary of Lemma \ref{lem:nullspaces_hht} provides analogous rela
 
 
 \section{Moore-Penrose pseudoinverse}
+\footnote{Statements and proofs in this section are inspired on \bib, though significant changes and simplifications have been introduced in \ref{thm:regression_existence} and \ref{thm:regression_uniqueness}; notation has been unified throughout.}
 Linear Algebra addresses a fundamental problem of solving a system of linear equations
 $$ A x - b = 0$$
 by introducing a notion of matrix inverse. If $x$ is a vector of unknown variables and certain conditions are met (including $A$ being a square matrix) one can obtain the solution as: $ x = A^{-1} b $. As our problem of Multivariate Regression is almost identical in structure
@@ -273,8 +262,6 @@ This trade-of between precision of the solution and its guaranteed existence mot
 \subsection{Derivation}
 First of all, we should make sure that the operator $T^+$ can be well defined, i.e. that given a multiple regression problem there exists a single vector of "the best" coefficients, minimising the training error.
 The following two theorems assure existence of the solution and provide an interesting way of picking the best vector among those yielding the same error.
-
-Proofs in this section are inspired on \bib, though significant changes and simplifications have been introduced.
 
 \begin{theorem}\label{thm:regression_existence}
 With a matrix $H \in \Mat{n}{m}$ and $z \in \R^n$ the set
@@ -299,7 +286,7 @@ With a matrix $H \in \Mat{n}{m}$ and $z \in \R^n$ the set
 
 \begin{theorem}\label{thm:regression_uniqueness}
     With X defined as above there is a unique vector $\hat{x}$ with minimum norm in X.
-    % Moreover, $\hat{x} \in \Ra(H^T)$.
+    Also, $\hat{x} \in \Ra(H^T)$.
 \end{theorem}
 \begin{proof}
     Pick $a, b \in X$ and use orthogonal decomposition:
@@ -315,7 +302,7 @@ With a matrix $H \in \Mat{n}{m}$ and $z \in \R^n$ the set
     The only difference is the component lying in the null-space of $H$. Clearly
     $$ | a |^2 = | a_\perp |^2 + |a_\pll |^2 \geq |a_\perp |^2$$
     so norm of $a$ is minimal if and only if $a_\pll = 0$, hence only one vector $a_\perp = \hat{x} \in X$ minimises the norm.
-    %By Corollary \ref{cor:charact_range} we obtain $ \hat{x} \in \Nu^\perp (H) = \Ra(H^T) $ as required.
+    By Corollary \ref{cor:charact_range} we obtain $ \hat{x} \in \Nu^\perp (H) = \Ra(H^T) $ as required.
 \end{proof}
 Now as we have shown our solution exists and is unique if we settle for minimal norm as our secondary criterion of choice, we can construct an explicit formula for $a$ in terms of $z$ and $H$, so called Moore-Penrose pseudoinverse.
 
@@ -401,7 +388,7 @@ We have seen in Lemma \ref{lem:charact_sym_nullspace} that $H^T H$ is symmetric 
          = \lim_{\delta \to 0} (H^T H + \delta^2 I)^{-1} H^T H x_0
         $$
     As noted after the proof of Lemma \ref{lem:limit_existence_1}, $a$ is a projection of $x_0$ onto the range of $ A = H^T H $, while by Corollary \ref{cor:equal_ranges} we have $\Ra(H^T) = \Ra(H^T)$.
-    Hence $a$ is a projection of $x_0$ onto $\Ra(H^T)$ which, as in proof of Theorem \ref{thm:regression_solution} is the unique minimal norm solution for multiple regression.
+    Hence $a$ is a projection of $x_0$ onto $\Ra(H^T)$ which, as in Theorem \ref{thm:regression_uniqueness} is the unique minimal norm solution for multiple regression.
 \end{proof}
 
 \subsection{Properties and applications}
@@ -442,8 +429,13 @@ Observing behaviour of the pseudoinverse for eigenvalues close to zero we see a 
     For a positive semidefinite normal matrix $H$ with singular value decomposition $H = U \Sigma V^*$ where $U$ and $V$ are unitary matrices and $\Sigma$ is a rectangular diagonal matrix with non-negative entries, the pseudoinverse can be written as:
     $$ H^+ = V \Sigma^+ U^* $$
 \end{lemma}
+
 \pagebreak
+
 \section{Neural networks}
+
+\footnote{This section is my summary of \bib and \bib in comparison with regression models. Statements and proofs on Back Propagation are taken from \bib}
+%
 The second part of this essay is dedicated to an alternative method of approximating a function $ f : \R^n \to \R$, based on prior knowledge of $f$ evaluated at the training set. The key difference is that we now allow our estimate to be non-linear. Of course expanding search space means we use much more parameters to describe $f$, in turn making the optimisation problem significantly harder to solve. Only modern advances in computer algebra and computing power made such approach feasible in real-life scenarios.
 
 A particular widely used model for f is so called Neural Network. It's worth to note that despite a very suggestive name this model is only loosely inspired by biological structure of our brains and ...
@@ -587,16 +579,12 @@ With this representation of $\delta^l$ we are able to compute interesting partia
 These two lemmas allows us to compute all partial derivatives of $C$ using only component-wise multiplication and other elementary matrix operations on $a^l$ and $\delta^l$, both of which can be computed iteratively by traversing the network once (backward in case of $\delta^l$). This is a significant performance improvement from trying to numerically estimate the partial derivatives by slightly changing a network parameter and computing change in $C$ from scratch.
 
 \section{Summary}
+To be written in plain English if needed at all.
 \begin{enumerate}
     \item Described problem setting and key challenges of a wide class of ML problems.
     \item Explored algebraic motivation of multiple regression that allows for rigorous proofs.
     \item Discussed a more complicated model and shown how approximate optimisation is performed in a numerically efficient way
 \end{enumerate}
-%Derivative of the sigmoid function has a convenient representation:
-% \begin{equation} % change to proposition or something like that
-%     \frac{d \sigma (x)}{d x} = \frac{- x e^{-x}}{(1 + e^{-x})^2}
-%     = \sigma(x) (1 - \sigma(x))
-% \end{equation}
 
 % \bibliographystyle{plain}
 % \bibliography{bibliography.bib}
