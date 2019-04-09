@@ -8,7 +8,11 @@
 \usepackage{hyperref}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
+\usepackage{csquotes}
 \usepackage{dirtytalk} % quotation marks
+
+\usepackage{biblatex} % bibliography
+\addbibresource{bibliography.bib}
 
 \theoremstyle{break}
 \theoremindent=1cm
@@ -79,7 +83,7 @@ Although during the training only training set is available to measure error on,
 It comes out that due to random variation in the test sample, \say{simpler} models with slightly higher test error generalise better than the ones that tried to fit the noisy data more closely rather than following general patterns.
 The issue of poor generalisation of too \say{complicated} models is known as {\tt overfitting}.
 
-As a rule of thumb a model is more likely to overfit when it has more parameters in $ \omega $. Among models with the same parameter space $ \Omega $ the ones with smaller values of parameters generalise better. A good measure of that is the norm of parameter vector: $ | \omega | $.
+As a rule of thumb a model is more likely to overfit when it has more parameters in $ \omega $ \cite[pp112-113]{goodfellow}. Among models with the same parameter space $ \Omega $ the ones with smaller values of parameters generalise better \cite[p119]{goodfellow}. A good measure of that is the norm of parameter vector: $ | \omega | $.
 % this is a bold oversimplification but... I don't really want to go there as I'm short on space anyway.
 % it may be beneficial to include classic polynomial overfitting example here...
 
@@ -99,20 +103,13 @@ With this motivation we first look into the simplest parametric model: linear re
     \end{equation}
 \end{definition}
 
-In the following two sections I explore algebraic background that shows $ w $ can indeed be found and develop tools for computing it, given a matrix $H$ representing the training set and the vector of labels $l$.
+In the following two sections I explore algebraic background that shows $ w $ can indeed be found and develop tools for computing it.
 
 \section{Facts from Linear Algebra}
 
-\footnote{This section is a selection of statements from introduction in \bib  adjusted to knowledge from Algebra courses. Proofs are inspired there except for \ref{lem:double_perp} which is my own improvisation.}
-We start by stating several theorems that are parts of the curricula for the second year or are closely related to the familiar notions of vector (sub)space, range and null space. The first result provides a useful way of decomposing a vector into two components, exactly one lying inside a vector subspace. Uniqueness of such decomposition will be useful when showing uniqueness of our optimal solution for the regression problem.
-
-\subsection{Conventions}
-\begin{enumerate}
-    \item Vectors are by default column vectors,
-    \item Matrices are real,
-    \item Orthogonal vectors are denoted by $ v \perp w$
-    \item $\Nu(H)$ resp. $\Ra(H)$ denote the null space resp. the range of a matrix $H$.
-\end{enumerate}
+\footnote{This section is a selection of statements from introduction in Albert's monograph on M-P pseudoinverse \cite[pp6-12]{albert}. Theorem proofs are adapted from there while Lemmas are my take on exercises.}
+%
+We start by stating several theorems that are parts of the curricula for the second year or are closely related to the familiar notions of vector (sub)space, range and null-space. The first result provides a useful way of decomposing a vector into two components, exactly one lying inside a vector subspace. Uniqueness of such decomposition will be useful when showing uniqueness of our optimal solution for the regression problem.
 
 \subsection{Orthogonal decomposition}
 As introduced in the Geometry module, we define two vectors as perpendicular (denoted by $ a \perp b$) if and only if their scalar product is 0. Given a vector subspace $V \in \R^n$ we can think about vectors perpendicular to all its elements and denote them as $z \perp V$. We call a set of all such vectors the orthogonal complement of $V$:
@@ -157,7 +154,8 @@ allows us to conclude an important property of the complement defined above:
 \end{proof}
 
 Once we have defined an orthogonal complement it comes handy to relate them with notions of null space and range.
-The key result is a characterisation of a null space presented below:
+The key result is a characterisation of a null space presented below.
+Let $\Nu(H)$ resp. $\Ra(H)$ denote the null space resp. the range of a matrix $H$.
 
 \begin{theorem} \label{thm:charact_nullspace}
     For any matrix $H \in \Mat{n}{m}$ the null space of $H$ is equal to perpendicular complement of $H^T$ in $\R^m$, i.e.
@@ -231,7 +229,7 @@ An immediate corollary of Lemma \ref{lem:nullspaces_hht} provides analogous rela
 
 
 \section{Moore-Penrose pseudoinverse}
-\footnote{Statements and proofs in this section are inspired on \bib, though significant changes and simplifications have been introduced in \ref{thm:regression_existence} and \ref{thm:regression_uniqueness}; notation has been unified throughout.}
+\footnote{Statements and proofs in this section are inspired on \cite[pp15-24]{albert}, though significant changes are made in \ref{thm:regression_existence} and \ref{thm:regression_uniqueness}.}
 Linear Algebra addresses a fundamental problem of solving a system of linear equations
 $$ A x - b = 0$$
 by introducing a notion of matrix inverse. If $x$ is a vector of unknown variables and certain conditions are met (including $A$ being a square matrix) one can obtain the solution as: $ x = A^{-1} b $. As our problem of Multivariate Regression is almost identical in structure
@@ -405,7 +403,12 @@ To better understand the structure of pseudoinverse matrix, it is helpful to con
     $$ A^+ = T D^+ T^T$$
 \end{lemma}
 
-Observing behaviour of the pseudoinverse for eigenvalues close to zero we see a discontinuity: small but non-zero value results in a large inverse while zero is mapped to zero. This phenomenon makes it challenging to compute pseudoinverse directly from the definition in a numerically stable way. Luckily, an alternative formula can be derived which is based on singular value decomposition. This method is nowadays the most popular in computer libraries. Detailed discussion is out of scope of this essay, yet we state the result:
+Observing behaviour of the pseudoinverse for eigenvalues close to zero we see a discontinuity: small but non-zero value results in a large inverse while zero is mapped to zero.
+
+\bib numerical example to illustrate that.
+
+
+This phenomenon makes it challenging to compute pseudoinverse directly from the definition in a numerically stable way. Luckily, an alternative formula can be derived which is based on singular value decomposition. This method is nowadays the most popular in computer libraries. Detailed discussion is out of scope of this essay, yet we state the result:
 \begin{lemma}[SVD]
     For a positive semidefinite normal matrix $H$ with singular value decomposition $H = U \Sigma V^*$ where $U$ and $V$ are unitary matrices and $\Sigma$ is a rectangular diagonal matrix with non-negative entries, the pseudoinverse can be written as:
     $$ H^+ = V \Sigma^+ U^* $$
@@ -415,7 +418,7 @@ Observing behaviour of the pseudoinverse for eigenvalues close to zero we see a 
 
 \section{Neural networks}
 
-\footnote{This section is my summary of \bib and \bib in comparison with regression models. Statements and proofs on Back Propagation are taken from \bib}
+\footnote{This section is my summary of Highams' article \cite{higham} and an extensive book by Goodfellow et all. \cite{goodfellow} in comparison with regression models. Statements and proofs on Back Propagation are taken from \cite{higham}}
 %
 The second part of this essay is dedicated to an alternative method of approximating a function $ f : \R^n \to \R$, based on prior knowledge of $f$ evaluated at the training set. The key difference is that we now allow our estimate to be non-linear. Of course expanding search space means we use much more parameters to describe $f$, in turn making the optimisation problem significantly harder to solve. Only modern advances in computer algebra and computing power made such approach feasible in real-life scenarios.
 
@@ -435,7 +438,7 @@ $$ f(x) =
 \end{cases}$$
 Can't be well approximated by $L(x) = a x  + b$.
 
-<-- example with a graph of a linear fit?
+\bib example with a graph of a linear fit
 
 In order to model such behaviour, we'll introduce to our model so called activation function - a non-linear component  that imitates the step function. As optimisation procedures often rely on differentiation with respect to $x$, a common choice of activation function is the following:
 
@@ -482,7 +485,7 @@ The second problem is computation of the gradient of $f$ becoming prohibitively 
        \frac{1}{N} \sum_{r \text{ row of } H} | f(\omega; r) - l_r |^2 $$
 so it takes time proportional to the size of the test set $N$ to evaluate $C$.
 Now to approximate the gradient of a general function with domain $ \Omega $ one needs to evaluate at least $C(\omega + t \omega_i)$ for every component of $ \omega $, hence to perform one iteration of Gradient Descent one requires $ \bO( N  \dim(\Omega) ) $ evaluations of $f$,
-each taking at least $ O( \dim(\Omega))$ elementary operations, yielding total time complexity of $ \bO( N \dim(\Omega)^2)$ per iteration. With most of interesting problems featuring training sets exceeding $ 10^6 $ samples and $ 10^3 $ parameters, this will quickly exceed most computational budgets.
+each taking at least $ O( \dim(\Omega))$ elementary operations, yielding total time complexity of $ \bO( N \dim(\Omega)^2)$ per iteration. With most of interesting problems featuring training sets exceeding $ 10^6 $ samples and $ 10^3 $ parameters, this will quickly exhaust most computational budgets.
 
 \subsection{Stochastic Gradient}
 Also known as Stochastic Gradient Descent is a modification of the above algorithm that tries to lower computational complexity per iteration. To do so, instead of evaluating $C(\omega)$ it approximates it by taking a random sample from the training set and calculating the mean error only over that sample. In each step a new sample is chosen, grounded in the observation that if $ S \subset T $ with $ | S | = M < |T| $ is a randomly chosen subset of $T$ then
@@ -492,7 +495,7 @@ so in the long run the algorithm will also converge to a local minimum.
 
 
 \subsection{Back Propagation}
-Another way to improve the asymptotic complexity of the training algorithm is to leverage the structure of $f$ to compute the gradient $ \frac{\partial C}{\partial \omega} $ efficiently.
+As presented in \cite[pp11-14]{higham} another way to improve the asymptotic complexity of the training algorithm is to leverage the structure of $f$ to compute the gradient $ \frac{\partial C}{\partial \omega} $ efficiently.
 
 To keep notation under control we'll move layer indices to the superscript, so that $W_i$ becomes $ W^i $. Subscripts are used to denote components. Let us define some helper variables:
 \begin{definition}\label{def:back_prop_helper}
@@ -554,19 +557,11 @@ With this representation of $\delta^l$ we are able to compute interesting partia
      $$ \Part{C}{W^l_{j, k}} = \delta^l_j a_k^{l-1} $$
 \end{lemma}
 \begin{proof}
-    Proof uses similar techniques as presented above and can be found in [].
+    Proof uses similar techniques as presented above and can be found in \cite[p14]{higham}.
 \end{proof}
 
 These two lemmas allows us to compute all partial derivatives of $C$ using only component-wise multiplication and other elementary matrix operations on $a^l$ and $\delta^l$, both of which can be computed iteratively by traversing the network once (backward in case of $\delta^l$). This is a significant performance improvement from trying to numerically estimate the partial derivatives by slightly changing a network parameter and computing change in $C$ from scratch.
 
-\section{Summary}
-To be written in plain English if needed at all.
-\begin{enumerate}
-    \item Described problem setting and key challenges of a wide class of ML problems.
-    \item Explored algebraic motivation of multiple regression that allows for rigorous proofs.
-    \item Discussed a more complicated model and shown how approximate optimisation is performed in a numerically efficient way
-\end{enumerate}
 
-% \bibliographystyle{plain}
-% \bibliography{bibliography.bib}
+\printbibliography
 \end{document}
