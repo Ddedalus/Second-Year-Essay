@@ -21,7 +21,7 @@
 \newtheorem{lemma}[theorem]{Lemma}
 
 
-
+\newcommand{\bib}{???}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\Nu}{\mathcal{N}}
 \newcommand{\Ra}{\mathcal{R}}
@@ -123,6 +123,8 @@ In the following two sections I explore algebraic background that shows $ w $ ca
 \section{Facts from Linear Algebra}
 
 We start by stating several theorems that are parts of the curricula for the second year or are closely related to the familiar notions of vector (sub)space, range and null space. The first result provides a useful way of decomposing a vector into two components, exactly one lying inside a vector subspace. Uniqueness of such decomposition will be useful when showing uniqueness of our optimal solution for the regression problem.
+
+This section is a selection of statements from introduction in \bib adjusted to knowledge from Algebra courses. Proofs are inspired there except for \ref{lem:double_perp} which is my own improvisation.
 
 \subsection{Conventions}
 \begin{enumerate}
@@ -269,53 +271,52 @@ we would be interested in finding an analogous operation, say $ T \to T^+$ such 
 This trade-of between precision of the solution and its guaranteed existence motivates defining the Moore-Penrose pseudoinverse.
 
 \subsection{Derivation}
-First of all, we should make sure that the operator $T^+$ can be well defined, i.e. that given a multiple regression problem there exists a single vector of "the best" coefficients, minimising the training error. The following theorem assures that the solutions exist and provides an interesting way of picking the best vector among those yielding the same error.
+First of all, we should make sure that the operator $T^+$ can be well defined, i.e. that given a multiple regression problem there exists a single vector of "the best" coefficients, minimising the training error.
+The following two theorems assure existence of the solution and provide an interesting way of picking the best vector among those yielding the same error.
 
-\begin{theorem}\label{thm:regression_solution}
-With a matrix $H$ as above and $z \in \R^n$
-\begin{enumerate}
-    \item The set
-        \begin{equation*}
-        X := \{ x \in \R^n : \| z - H x \| = \inf\limits_{y \in \R^n} \| z - H y \| \}
-        \end{equation*}
+Proofs in this section are inspired on \bib, though significant changes and simplifications have been introduced.
+
+\begin{theorem}\label{thm:regression_existence}
+With a matrix $H \in \Mat{n}{m}$ and $z \in \R^n$ the set
+\begin{equation*}
+    X := \{ x \in \R^n : \| z - H x \| = \inf\limits_{y \in \R^n} \| z - H y \| \}
+\end{equation*}
         is not empty, i.e. there exists a vector $x$ minimising $\| z - H x \|$.
-    \item There is a unique vector $\hat{x}$ with minimum norm in X.
-    \item $\hat{x}$ is the unique vector in $\Ra(H^T)$ which satisfies $ H x = z_\Ra $ where $ z_\Ra $ is a projection of z on $ \Ra(H) $.
-\end{enumerate}
-
 \end{theorem}
 \begin{proof} % rework, using the shorter proof
-    First write $z$ as $z = z_\pll + z_\perp$ with $z_\pll \in \Nu(H^T)$.
+    First write $z$ as $z = z_\pll + z_\perp$ with $z_\pll \in \Ra(H)$ and $z_\perp \in \Ra^\perp(H) = \Nu(H^T)$.
     By definition of range $H x \in \Ra(H)$ and so
-    $$ z_\perp - H x \in \Ra(H) ~~ \implies ~~ z_\pll \perp z_\perp - H x $$
-    As the scalar product of these two vectors is zero, we can use inequality 4 from Theorem \ref{thm:projection} to obtain the following lower bound:
+    $$ z_\pll - H x \in \Ra(H) ~~ \implies ~~ z_\perp \perp z_\pll - H x $$
+    meaning that $\langle z_\perp, z_\pll - H x \rangle$. Using that we obtain a lower bound:
     \begin{equation}\label{eq:upper_bound}
-    \| z - H x \|^2 = \| z_\pll + z_\perp - H x \|^2 =
+    \| z - H x \|^2 = \| z_\perp + z_\pll - H x \|^2 =
     \| z_\perp \|^2 + \| z_\pll - H x \|^2 + 2 \langle z_\perp, z_\pll - H x \rangle^2 = 
-    \| z_\perp \| + \| z_\pll - H x \|^2 \geq \| z_\perp \|^2        
+    \| z_\perp \| + \| z_\pll - H x \|^2 \geq \| z_\perp \|^2
     \end{equation}
     
-    Since $ z_\pll \in \Ra(H)$ there exists $a$ such that $z_\pll = Ha$, turning the above into an equality:
-    
-    $$ \| z - Ha \|^2 = \| z_\perp \|^2$$
-    
-    Now using the decomposition theorem again, we can write any such $a$ as
-    $ a = a_\pll + a_\perp $ with $a_\pll \in \Ra(H^T)$
-    and $ a_\perp \in \Ra^\perp(H^T)$. Then, as 
-    $$ \| a \|^2 = \| a_\pll \|^2 + \| a_\perp \|^2 \geq \| a_\perp\|^2$$
-    with equality if and only if $a = a_\pll$ or in other words $ a \in \Ra(H^T)$. The parallel component is determined by $z$.
-
-    On the other hand, by Theorem \ref{thm:charact_nullspace} we have $a_\perp \in \Ra^\perp (H^T) = \Nu(H)$ so $a_\perp$ belongs to the null space of $H$ and hence $ z_\pll = Ha = H a_\pll + H a_\perp = H a_\pll $.
-    
-    So far we have shown there exists a vector $a$ that minimises $ \| z - H x \| $ and that among such vectors the one with minimal norm belongs to the range of $ H^T $. What is left is showing the uniqueness of $a$.
-    
-    Suppose both $a$ and $b$ are in $ \Ra(H^T) $ and $ z_\pll = H a = H b$.
-    As $ \Ra(H^T) $ is linear, $ a - b \in \Ra(H^T)$, yet $ H(a - b) = 0$ so $ a - b \in \Nu(H) = \Ra^\perp(H^T)$ by Theorem \ref{thm:charact_nullspace}. Thus the vector $ a - b$ belongs both to $ \Ra(H^T)$ and to its perpendicular complement, meaning it is in particular perpendicular to itself:
-    
-    $$ \langle a - b , a - b \rangle = \| a - b \|^2 = 0$$
-    Which implies that $ a = b$ and so $a$ is unique, as desired.
+    With equality if and only if $ z_\pll - H x $. Since $ z_\pll \in \Ra(H)$ such $x$ exists and so $X$ is not empty.
 \end{proof}
 
+\begin{theorem}\label{thm:regression_uniqueness}
+    With X defined as above there is a unique vector $\hat{x}$ with minimum norm in X.
+    % Moreover, $\hat{x} \in \Ra(H^T)$.
+\end{theorem}
+\begin{proof}
+    Pick $a, b \in X$ and use orthogonal decomposition:
+    $$ a = a_\pll + a_\perp \text{ with } a_\pll \in \Nu(H),~~ a_\perp \in \Nu^\perp (H)$$
+    $$ b = b_\pll + b_\perp \text{ with } b_\pll \in \Nu(H),~~ b_\perp \in \Nu^\perp (H)$$
+    Notice that by definition of $a$ and $b$ we have
+    $$ H a - H b = z_\pll - z_\pll = 0 ~~ \implies a - b \in \Nu(H)$$
+    while on the other hand this difference can be written as
+    $$ a - b = (a_\pll - b_\pll) + (a_\perp - b_\perp) \in \Nu(H)$$
+    which implies $ a_\perp - b_\perp \in \Nu(H) $. Yet from the fact that $\Nu^\perp (H)$ is a vector space we have $ a_\perp - b_\perp \in \Nu^\perp (H)$. The only vector in $ \Nu^\perp (H) \cap \Nu (H)$ is $0$ proving $ a_\perp = b_\perp$.
+    
+    We have shown that any two solutions in $X$ share the same projection $\Nu^\perp (H) = \Ra(H^T)$, meaning $a_\perp$ is determined by $z$.
+    The only difference is the component lying in the null-space of $H$. Clearly
+    $$ | a |^2 = | a_\perp |^2 + |a_\pll |^2 \geq |a_\perp |^2$$
+    so norm of $a$ is minimal if and only if $a_\pll = 0$, hence only one vector $a_\perp = \hat{x} \in X$ minimises the norm.
+    %By Corollary \ref{cor:charact_range} we obtain $ \hat{x} \in \Nu^\perp (H) = \Ra(H^T) $ as required.
+\end{proof}
 Now as we have shown our solution exists and is unique if we settle for minimal norm as our secondary criterion of choice, we can construct an explicit formula for $a$ in terms of $z$ and $H$, so called Moore-Penrose pseudoinverse.
 
 % there is a theorem 3.2 (normal equations) proven here in the book yet the derivation of MP doesn't seem to depend on it.
