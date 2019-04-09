@@ -10,6 +10,7 @@
 \usepackage[english]{babel}
 \usepackage{csquotes}
 \usepackage{dirtytalk} % quotation marks
+\usepackage{caption} % multiline captions
 
 \usepackage{biblatex} % bibliography
 \addbibresource{bibliography.bib}
@@ -57,41 +58,44 @@ In the second part we illustrate limitations of such model and propose an altern
 
 \subsection{Machine learning context}
 
-In this essay I focus on functions from multiple real-valued inputs to a single real output.
+This essay focuses on functions from multiple real-valued inputs to a single real output.
 $$ f : \R^n \to \R $$
-Such problem setting is very common and many other formats of input data like text, integer numbers or even images can be mapped onto $\R^n$ for the purposes of Machine Learning.
+Such problem setting is very common and many other formats of input data like text, integer numbers or even images can be mapped onto $\R^n$ for the purposes of machine learning.
 
-The below discussion could be easily generalised to the case with multiple multiple output variables as each component could be treated as a separate real-valued function.
+The discussion below could be easily generalised to the case with multiple output variables as each component could be treated as a separate real-valued function.
 
-The function $f$ is understood to approximate an unknown (complicated) process which we'd like to model. This essay focuses on {\tt parametrised}, {\tt supervised} machine learning, meaning that we are given desired values of $f$ at certain points of its domain and we assume $f$ can be parameterised by a vector $ \omega \in \Omega$. We write $ f(\omega; x) $ meaning that once parameters are set, $f$ can be evaluated on an arbitrary point $x \in \R^n$ of its domain. Our goal is then to decide on the right parametrisation and compute optimal parameters $\omega$ within $\Omega$. We refer to this process as {\tt training} a model.
+The function $f$ is understood to approximate an unknown (complicated) process which we would like to model. This essay focuses on {\tt parametrised}, {\tt supervised} machine learning. Supervised means that we are given desired values of $f$ at certain points of its domain while parametrised means we assume $f$ can be determined by a vector of parameters $ \omega \in \Omega$ in some search space $\Omega$. We write $ f(\omega; x) $ meaning that once parameters are set, $f$ can be evaluated on an arbitrary point $x \in \R^n$ of its domain. The goal is then to decide on the right parametrisation and compute optimal parameters $\omega$ within $\Omega$. We refer to this optimisation process as {\tt training} a model.
 
-\begin{enumerate}
-    \item \bib example where we want to fit such function
-\end{enumerate}
+A good practical example of such modelling is trying to predict price of a particular financial asset as a function of several other assets that may influence it with a complicated market mechanism. We can't describe this relation explicitly but we can hope to provide an approximation that follows general patterns of dependence between these prices.
 
-In context of Machine Learning we call the function $f$ a {\tt model} and we refer to the pairs of known input and output values as the {\tt training set}. It is often convenient to organise the training set into a matrix $H$ where each input value is represented by a row. Consequently we gather the corresponding values of $f$ (often called {\tt labels}) into a vertical vector $l$. Function $f$ is understood to act on every row of a matrix separately, resulting in a corresponding label, so that ideally
+In context of machine learning we call the function $f$ a {\tt model} and we refer to the pairs of known input and output values as the {\tt training set}. It is often convenient to organise the training set into a matrix $H$ where each input value is represented by a row. Consequently we gather the corresponding values of $f$ (often called {\tt labels}) into a vertical vector $l$. Function $f$ is understood to act on every row of a matrix separately, resulting in a corresponding label, so that ideally:
     $$ f(H) = l $$
 
 The usual way of measuring how well $f$ approximates the true process is evaluating $f(H)$ and comparing it to the labels $l$ using sum of squared errors made on each sample, in our matrix notation:
 $$ | f(\omega; H) - l |^2 $$
 We refer to the above quantity as a {\tt training error} for parameters $\omega$.
 
-Nowadays in many cases the dimension $n$ of the input space is quite high, often reaching thousands. Moreover, the cardinality of the training set used in practical applications is growing very quickly together with the amount of digital data that we store and process. It is not uncommon to have millions of training samples for a single model. Therefore discussion of possible models for $f$ is strictly connected with search for efficient numerical algorithms that find optimal parameters for $f$ given $H$ and $l$.
+Nowadays, in many cases the dimension $n$ of the input space is quite high, often reaching thousands. Moreover, the cardinality of the training set used in practical applications is growing very quickly together with the amount of digital data that we store and process. It is not uncommon to have millions of training samples for a single model. Therefore discussion of possible models for $f$ is strictly connected with search for efficient numerical algorithms that find optimal parameters for $f$ given $H$ and $l$.
 
-Although during the training only training set is available to measure error on, at the end of the day we'd like $F$ to approximate $f$ also on data points that are similar to the ones in $H$ but not identical.
+Although during the training only training set is available to measure error, at the end of the day we would like $F$ to approximate $f$ also on data points that are similar to the ones in $H$ but not identical.
 
 It comes out that due to random variation in the test sample, \say{simpler} models with slightly higher test error generalise better than the ones that tried to fit the noisy data more closely rather than following general patterns.
 The issue of poor generalisation of too \say{complicated} models is known as {\tt overfitting}.
 
 As a rule of thumb a model is more likely to overfit when it has more parameters in $ \omega $ \cite[pp112-113]{goodfellow}. Among models with the same parameter space $ \Omega $ the ones with smaller values of parameters generalise better \cite[p119]{goodfellow}. A good measure of that is the norm of parameter vector: $ | \omega | $.
 % this is a bold oversimplification but... I don't really want to go there as I'm short on space anyway.
-% it may be beneficial to include classic polynomial overfitting example here...
 
-\begin{figure}[!htbp]
-\begin{center}
-    \includegraphics[width=8cm]{overfit_poly.png}
-\end{center}
-\caption{Classic overfit example that may be worth discussing.}\label{img:overfit}
+\begin{figure}[b]
+\centering
+\captionsetup{width=0.8\linewidth}
+\includegraphics[width=0.8\linewidth]{polyfit.png}
+\caption[]{
+    \textit{Polynomial least-squares models of varying degree. \\
+    Points generated by adding random noise to quadratic function;
+    (left) insufficient number of parameters to follow the pattern;
+    (centre) reasonable fit;
+    (right) too many parameters follow noise.}
+}
 \end{figure} 
 
 With this motivation we first look into the simplest parametric model: linear regression.
@@ -105,14 +109,15 @@ With this motivation we first look into the simplest parametric model: linear re
 
 In the following two sections I explore algebraic background that shows $ w $ can indeed be found and develop tools for computing it.
 
+\pagebreak
 \section{Facts from Linear Algebra}
 
 \footnote{This section is a selection of statements from introduction in Albert's monograph on M-P pseudoinverse \cite[pp6-12]{albert}. Theorem proofs are adapted from there while Lemmas are my take on exercises.}
 %
-We start by stating several theorems that are parts of the curricula for the second year or are closely related to the familiar notions of vector (sub)space, range and null-space. The first result provides a useful way of decomposing a vector into two components, exactly one lying inside a vector subspace. Uniqueness of such decomposition will be useful when showing uniqueness of our optimal solution for the regression problem.
+We start by stating several theorems closely related to the familiar notions of vector (sub)space, range and null-space. The first result provides a useful way of decomposing a vector into two components, exactly one lying inside a vector subspace. Uniqueness of such decomposition will be useful when showing uniqueness of our optimal solution for the regression problem.
 
 \subsection{Orthogonal decomposition}
-As introduced in the Geometry module, we define two vectors as perpendicular (denoted by $ a \perp b$) if and only if their scalar product is 0. Given a vector subspace $V \in \R^n$ we can think about vectors perpendicular to all its elements and denote them as $z \perp V$. We call a set of all such vectors the orthogonal complement of $V$:
+Two vectors are perpendicular (denoted by $ a \perp b$) if and only if their scalar product is 0. Given a vector subspace $V \in \R^n$ we can think about vectors perpendicular to all its elements and denote them as $z \perp V$. We call a set of all such vectors the orthogonal complement of $V$:
 $$ V^\perp := \{ v \in \R^n : v \perp V\} $$
 Notice that $V^\perp \cap V = \{0\}$ and that $V^\perp$ is itself a vector subspace since scalar product is linear. The following theorem provides a widely useful decomposition of an arbitrary vector:
 
@@ -403,10 +408,26 @@ To better understand the structure of pseudoinverse matrix, it is helpful to con
     $$ A^+ = T D^+ T^T$$
 \end{lemma}
 
-Observing behaviour of the pseudoinverse for eigenvalues close to zero we see a discontinuity: small but non-zero value results in a large inverse while zero is mapped to zero.
-
-\bib numerical example to illustrate that.
-
+Observing behaviour of the pseudoinverse for eigenvalues close to zero we see a discontinuity: small but non-zero value results in a large inverse while zero is mapped to zero. For example the two matrices:
+$$ A = \left( \begin{matrix}
+1 & 0 \\
+0 & 0 \\
+0 & 0
+\end{matrix} \right) ~~~~
+B = \left( \begin{matrix}
+1 & 0 \\
+0 & 0 \\
+0 & 0.001
+\end{matrix} \right)$$
+Though are almost identical have drastically different pseudoinverses:
+$$ A^+ = \left( \begin{matrix}
+1 & 0 & 0\\
+0 & 0 & 0
+\end{matrix} \right) ~~~~
+B^+ = \left( \begin{matrix}
+1 & 0 & 0\\
+0 & 0 & 1000
+\end{matrix} \right)$$
 
 This phenomenon makes it challenging to compute pseudoinverse directly from the definition in a numerically stable way. Luckily, an alternative formula can be derived which is based on singular value decomposition. This method is nowadays the most popular in computer libraries. Detailed discussion is out of scope of this essay, yet we state the result:
 \begin{lemma}[SVD]
@@ -427,7 +448,7 @@ A particular widely used model for f is so called Neural Network. It's worth to 
 \subsection{Shortcomings of a linear model}
 To get a general idea about the techniques used to construct optimal search space, let us analyse several shortcomings of a linear model and propose modifications and additional parameters that allow more robust fit.
 
-\subsection{Modelling step function}
+\subsubsection{Step function}
 Linear function is unable to model situations when the outcome depends 'discretely' on one of the input parameters.
 
 For example the step function with threshold $c \in \R$
@@ -438,7 +459,11 @@ $$ f(x) =
 \end{cases}$$
 Can't be well approximated by $L(x) = a x  + b$.
 
-\bib example with a graph of a linear fit
+\begin{figure}[bph]
+    \centering
+    \includegraphics[width=0.4\linewidth]{step_linfit.png}
+    \caption{\textit{Attempt to fit a linear model to samples from (noisy) step function with threshold at 0.}}
+\end{figure}
 
 In order to model such behaviour, we'll introduce to our model so called activation function - a non-linear component  that imitates the step function. As optimisation procedures often rely on differentiation with respect to $x$, a common choice of activation function is the following:
 
@@ -448,7 +473,7 @@ In order to model such behaviour, we'll introduce to our model so called activat
 
 % !!! graph of the sigmoid function
  
-\subsection{Features depending on a combination of input variables}
+\subsubsection{Non-linear combination of input variables}
 It comes out that in practice the value of $f$ often depends on non-additive combination of input variables. A simple example would be a function $a(x_1, x_2) = x_1 x_2$. Again, modelling with a linear function gives a poor approximation far from the origin.
 There are many ways of addressing this issue, which can be described in abstract terms as finding a preprocessing function $ \theta : \R^n \to \R^m$ that maps input to a space of features that are (linearly) influencing the value of $f$. The model then becomes $ f = f_1 \circ \theta $.
 
