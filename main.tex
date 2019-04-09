@@ -8,6 +8,7 @@
 \usepackage{hyperref}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
+\usepackage{dirtytalk} % quotation marks
 
 \theoremstyle{break}
 \theoremindent=1cm
@@ -45,80 +46,60 @@
 \section{Introduction}
 
 \subsection{Abstract}
-Rough work, to be written in nice English.
 
-Recently we face many problems where objective is to guess a function of multiple variables (features) based on multiple examples (values at particular points).
+Recently, both in research and industry data analysis we face many problems where the objective is to \say{guess} a function of multiple variables (features) based on its values at particular points (test samples). This essay focuses on two approaches, first linear multiple regression is discussed with rigorous algebraic background where we show uniqueness of the optimal solution and point towards ways of computing it through Moore-Penrose pseudoinverse.
 
-In this essay:
-
-\begin{enumerate}
-    \item describe context of supervised machine learning
-    \item introduce multiple linear regression as one of suitable models
-    \item derive Moore-Penrose generalised inverse of a matrix as a tool of calculating regression coefficients
-    \item motivate usage of non-linear models
-    \item Introduce a simple neural network in comparison to a linear model
-    \item Discuss difficulties of finding the right parameters for the network, describe stochastic gradient algorithm
-\end{enumerate}
+In the second part we illustrate limitations of such model and propose an alternative in a form of a neural network. We briefly discuss difficulties in finding optimal parameters and derive a numerical solution together with Back Propagation algorithm.
 
 \subsection{Machine learning context}
 
-Rough work, to be written in plain English.
+In this essay I focus on functions from multiple real-valued inputs to a single real output.
+$$ f : \R^n \to \R $$
+Such problem setting is very common and many other formats of input data like text, integer numbers or even images can be mapped onto $\R^n$ for the purposes of Machine Learning.
+
+The below discussion could be easily generalised to the case with multiple multiple output variables as each component could be treated as a separate real-valued function.
+
+The function $f$ is understood to approximate an unknown (complicated) process which we'd like to model. This essay focuses on {\tt parametrised}, {\tt supervised} machine learning, meaning that we are given desired values of $f$ at certain points of its domain and we assume $f$ can be parameterised by a vector $ \omega \in \Omega$. We write $ f(\omega; x) $ meaning that once parameters are set, $f$ can be evaluated on an arbitrary point $x \in \R^n$ of its domain. Our goal is then to decide on the right parametrisation and compute optimal parameters $\omega$ within $\Omega$. We refer to this process as {\tt training} a model.
 
 \begin{enumerate}
-    \item In this essay I focus on functions from multiple real-valued inputs to a single real output (though multiple output variables can be easily generalised to).
-    $$ f : \R^n \to \R $$
-    
-    \item example where we want to fit such function
-    
-    \item We call a vector $x \in \R^n $ of values in the domain of $f$ a data point or data sample.
-    
-    \item If we know the value $ y_i = f(x_i) $ \textit{a priori} for certain points $ x_i \in X $ we call the set $X$ a training set and we refer to values $ ( y_i) $ as labels.
-    
-    \item In mathematical formulation it is often convenient to organise the training set into a matrix $H$ where each data point is represented by a row. Then we gather the labels into a vertical vector $y$. Function $f$ is understood to act on every row of a matrix separately, resulting in a corresponding label, so that
-    $$ f(H) = y $$
-    
-    In most practical applications the number of data samples is much larger than the number of the features so we think about $H$ as a rectangular matrix with more rows than columns.
-    
-    \item A supervised learning algorithm describes a process of analysing a training set and producing a function $ F : \R^n \to \R $ which approximates $f$ over its domain.
-    
-    \item The usual way of measuring how well $F$ approximates $f$ is evaluating $F(H)$ and comparing it to the labels $y$.
-    It is often convenient to consider a sum of squares of errors made on each sample, which in matrix notation is equivalent to:
-    $$ \| F(H) - f(H) \|^2 = \| F(H) - y \|^2 $$
-    The goal of the algorithm is then to find $F$ that minimises the above value, referred to as training error.
-    
-    \item Most supervised algorithms presuppose certain form of $F$, parameterised by a vector $ \omega \in \Omega$. We write $ F(\omega; x) $ meaning that once parameters are set, $F$ can be evaluated on an arbitrary point $x$ of its domain. In such parameterised model the goal of an algorithm is to find parameters $\omega$ that result in minimal training error. We often refer to the process of finding $ \omega $ as training the model.
+    \item \bib example where we want to fit such function
+\end{enumerate}
 
-    \item Although during the training only training set is available to measure error on, at the end of the day we'd like $F$ to approximate $f$ also on data points that are similar to the ones in $H$ but not identical.
-    It comes out that due to random variation in the test sample, "simpler" models with slightly higher test error generalise better than the ones that tried to fit the noisy data more closely rather than following general patterns. The issue of poor generalisation of too "complicated" models is known as overfitting.
-    
-    \item As a rule of thumb a model is more likely to overfit when it has more parameters in $ \omega $. Among models with the same parameter space $ \Omega $ the ones with smaller values of parameters generalise better. A good measure of that size is the norm of parameter vector: $ \| \omega \| $.
-    % this is a bold oversimplification but... I don't really want to go there as I'm short on space anyway.
-    % it may be beneficial to include classic polynomial overfitting example here...
+In context of Machine Learning we call the function $f$ a {\tt model} and we refer to the pairs of known input and output values as the {\tt training set}. It is often convenient to organise the training set into a matrix $H$ where each input value is represented by a row. Consequently we gather the corresponding values of $f$ (often called {\tt labels}) into a vertical vector $l$. Function $f$ is understood to act on every row of a matrix separately, resulting in a corresponding label, so that ideally
+    $$ f(H) = l $$
+
+The usual way of measuring how well $f$ approximates the true process is evaluating $f(H)$ and comparing it to the labels $l$ using sum of squared errors made on each sample, in our matrix notation:
+$$ | f(\omega; H) - l |^2 $$
+We refer to the above quantity as a {\tt training error} for parameters $\omega$.
+
+Nowadays in many cases the dimension $n$ of the input space is quite high, often reaching thousands. Moreover, the cardinality of the training set used in practical applications is growing very quickly together with the amount of digital data that we store and process. It is not uncommon to have millions of training samples for a single model. Therefore discussion of possible models for $f$ is strictly connected with search for efficient numerical algorithms that find optimal parameters for $f$ given $H$ and $l$.
+
+Although during the training only training set is available to measure error on, at the end of the day we'd like $F$ to approximate $f$ also on data points that are similar to the ones in $H$ but not identical.
+
+It comes out that due to random variation in the test sample, \say{simpler} models with slightly higher test error generalise better than the ones that tried to fit the noisy data more closely rather than following general patterns.
+The issue of poor generalisation of too \say{complicated} models is known as {\tt overfitting}.
+
+As a rule of thumb a model is more likely to overfit when it has more parameters in $ \omega $. Among models with the same parameter space $ \Omega $ the ones with smaller values of parameters generalise better. A good measure of that is the norm of parameter vector: $ | \omega | $.
+% this is a bold oversimplification but... I don't really want to go there as I'm short on space anyway.
+% it may be beneficial to include classic polynomial overfitting example here...
+
 \begin{figure}[!htbp]
 \begin{center}
     \includegraphics[width=8cm]{overfit_poly.png}
 \end{center}
-\caption{Classic overfit example that may be worth discussing.}\label{overfit}
+\caption{Classic overfit example that may be worth discussing.}\label{img:overfit}
 \end{figure} 
-    
-\end{enumerate}
 
 With this motivation we first look into the simplest parametric model: linear regression.
 
-\begin{equation}
-    \label{def}
-        \| T w - l \| = \inf\limits_{x \in \R^n} \| T x - l \|
-\end{equation}
-    
 \begin{definition}[Multiple Regression]
-    Given a real-valued $ n \times m$ matrix $T$ and a n-vector $l$ a Multiple Regression Model is a linear map $f \in \mathcal{L} ( \R ^n, \R)$ represented by a $ 1 \times n$ matrix $w$ such that
+    Given a real-valued $ n \times m$ matrix $H$ and a n-vector $l$ a Multiple Regression Model is a linear map $f \in \mathcal{L} ( \R ^n, \R)$ represented by a $ 1 \times n$ matrix $w$ such that
     \begin{equation}\label{def2}
-        \| T w - l \| = \inf\limits_{x \in \R^n} \| T x - l \|
+        | H w - l | = \inf\limits_{x \in \R^n} | H x - l |
     \end{equation}
 \end{definition}
-A similar definition can be written for multivariate linear regression where $ f \in \mathcal{L} ( \R ^n, \R^m)$. Finding the optimal parameters in such case is performed separately for every output variable. Hence, for the sake of simplicity we'll focus on real-valued functions.
 
-In the following two sections I explore algebraic background that shows $ w $ can indeed be found and develop tools for computing it, given a matrix $T$ representing the training set and the vector of labels $l$.
+In the following two sections I explore algebraic background that shows $ w $ can indeed be found and develop tools for computing it, given a matrix $H$ representing the training set and the vector of labels $l$.
 
 \section{Facts from Linear Algebra}
 
@@ -222,13 +203,13 @@ Matrices of the form $H^T H$ and $H H^T$ are symmetric for arbitrary $H \in \Mat
     $$ H^T H x = H^T 0 = 0 $$
     implying $x \in \Nu(H^T H) $.
     To show the other inclusion, pick $x \neq 0$ such that $H^T H x = 0$. Multiply from the right by $x^T$ to get
-    $$ x^T H^T H x = (H x)^T H x = \| H x \|^2 = 0 $$
+    $$ x^T H^T H x = (H x)^T H x = | H x |^2 = 0 $$
     implying $ H x =0 $ as required.
     
     The second equality of the lemma follows by a similar argument.
 \end{proof}
 
-Perhaps the most interesting part of the above proof is the technique of completing a product of matrices to an expression of the form $v^T v = \| v \|^2 $ and then using knowledge about norm of $v$ to reason about its structure.
+Perhaps the most interesting part of the above proof is the technique of completing a product of matrices to an expression of the form $v^T v = | v |^2 $ and then using knowledge about norm of $v$ to reason about its structure.
 
 An immediate corollary of Lemma \ref{lem:nullspaces_hht} provides analogous relationships between ranges:
 
@@ -254,7 +235,7 @@ An immediate corollary of Lemma \ref{lem:nullspaces_hht} provides analogous rela
 Linear Algebra addresses a fundamental problem of solving a system of linear equations
 $$ A x - b = 0$$
 by introducing a notion of matrix inverse. If $x$ is a vector of unknown variables and certain conditions are met (including $A$ being a square matrix) one can obtain the solution as: $ x = A^{-1} b $. As our problem of Multivariate Regression is almost identical in structure
-$$ \inf \| T x - l \| $$
+$$ \inf | T x - l | $$
 we would be interested in finding an analogous operation, say $ T \to T^+$ such that $ w = T^+ l$ where $w$ is a vector of coefficients minimising the training error. Unfortunately we cannot use the matrix inverse as in all practical circumstances we expect $T$ to be rectangular (amount of test samples should be much bigger than number of parameters)! On the other hand we don't hope to find an exact solution $ T w = l$ but rather just make the vectors $T w$ and $l$ ``as close as possible" under the standard norm.
 
 This trade-of between precision of the solution and its guaranteed existence motivates defining the Moore-Penrose pseudoinverse.
@@ -266,9 +247,9 @@ The following two theorems assure existence of the solution and provide an inter
 \begin{theorem}\label{thm:regression_existence}
 With a matrix $H \in \Mat{n}{m}$ and $z \in \R^n$ the set
 \begin{equation*}
-    X := \{ x \in \R^n : \| z - H x \| = \inf\limits_{y \in \R^n} \| z - H y \| \}
+    X := \{ x \in \R^n : | z - H x | = \inf\limits_{y \in \R^n} | z - H y | \}
 \end{equation*}
-        is not empty, i.e. there exists a vector $x$ minimising $\| z - H x \|$.
+        is not empty, i.e. there exists a vector $x$ minimising $| z - H x |$.
 \end{theorem}
 \begin{proof} % rework, using the shorter proof
     First write $z$ as $z = z_\pll + z_\perp$ with $z_\pll \in \Ra(H)$ and $z_\perp \in \Ra^\perp(H) = \Nu(H^T)$.
@@ -276,9 +257,9 @@ With a matrix $H \in \Mat{n}{m}$ and $z \in \R^n$ the set
     $$ z_\pll - H x \in \Ra(H) ~~ \implies ~~ z_\perp \perp z_\pll - H x $$
     meaning that $\langle z_\perp, z_\pll - H x \rangle$. Using that we obtain a lower bound:
     \begin{equation}\label{eq:upper_bound}
-    \| z - H x \|^2 = \| z_\perp + z_\pll - H x \|^2 =
-    \| z_\perp \|^2 + \| z_\pll - H x \|^2 + 2 \langle z_\perp, z_\pll - H x \rangle^2 = 
-    \| z_\perp \| + \| z_\pll - H x \|^2 \geq \| z_\perp \|^2
+    | z - H x |^2 = | z_\perp + z_\pll - H x |^2 =
+    | z_\perp |^2 + | z_\pll - H x |^2 + 2 \langle z_\perp, z_\pll - H x \rangle^2 = 
+    | z_\perp | + | z_\pll - H x |^2 \geq | z_\perp |^2
     \end{equation}
     
     With equality if and only if $ z_\pll - H x $. Since $ z_\pll \in \Ra(H)$ such $x$ exists and so $X$ is not empty.
@@ -322,8 +303,8 @@ The following two lemmas will guarantee that the limit involved in this definiti
 Multiplying both sides by $x^T$ we obtain
     $$ x^t (H^T H + \delta^2  I_m) x = 0 $$ % scalar
     $$ x^T H^T H x + \delta^2 x^T x = 0 $$
-    $$ \| H x \| + \delta^2 \| x \| \leq \delta^2 \| x \| = 0 $$
-This is a contradiction as $ x \neq 0 \implies \| x \| > 0 $ and $ \delta^2 > 0$ by assumption.
+    $$ | H x | + \delta^2 | x | \leq \delta^2 | x | = 0 $$
+This is a contradiction as $ x \neq 0 \implies | x | > 0 $ and $ \delta^2 > 0$ by assumption.
 Hence $\Nu(H^T H + \delta^2  I_m) = \{0\} $, i.e. it is invertible.
 \end{proof}
 
@@ -346,8 +327,8 @@ Hence $\Nu(H^T H + \delta^2  I_m) = \{0\} $, i.e. it is invertible.
     Let $ \delta_0 := min\{ | \lambda_i | : i \in {1, 2, \ldots, n}, \lambda_i \neq 0 \}$ - the smallest non-zero magnitude of an eigenvalue.
     Restrict $ \delta$ so that $ 0 <  | \delta | < \delta_0$.
     
-    Now $(A + \delta I)$ is non-singular since for $ \| x \| = 1$ we have $ \| A x \| \geq \delta_0 > \delta$
-    implying $ \| (A + \delta I) x \| > 0 $.
+    Now $(A + \delta I)$ is non-singular since for $ | x | = 1$ we have $ | A x | \geq \delta_0 > \delta$
+    implying $ | (A + \delta I) x | > 0 $.
     Now, as inverse is well-defined, for any vector $z = z_\perp + z_\pll$ decomposed with respect to range of $A$ we have
     $$ A z = A z_\pll$$
     On the other hand $z_\pll \in \Ra(A)$ so we can find $x_0$ such that $ z_\pll = A x_0$. Now
@@ -377,7 +358,7 @@ Note that in the special case when $H$ is invertible, this definition yields $H^
 We have seen in Lemma \ref{lem:charact_sym_nullspace} that $H^T H$ is symmetric which means $H^+$ is well defined by Lemma \ref{lem:limit_existence_1}. The following theorem shows that $ H^+$ indeed provides a minimum norm solution for the multiple regression:
 
 \begin{theorem}\label{thm:mp_solves_regression}
-    For any $H$ and $z$ of appropriate dimensions, the vector $a = H^+ z$ is the one of minimal norm minimising $ \| z - H x \| $.
+    For any $H$ and $z$ of appropriate dimensions, the vector $a = H^+ z$ is the one of minimal norm minimising $ | z - H x | $.
 \end{theorem}
 
 \begin{proof}
@@ -485,7 +466,7 @@ Assuming we have specified the number of layers $ \La $ and dimensions $ n_2, n_
 $f$ is parameterised by values of $ b_1, b_2, \ldots, b_{\La} $ and $ W_1, W_2, \ldots, W_{\La} $.
 We refer to all these parameters together as $ \omega \in \Omega $, following our notation from section 1.
 As in the case of linear model, we take the sum of squared residual norms as our error function, hence the training algorithm should find $ \omega $ such that
-    $$ C(\omega) =  \frac{1}{N} \| f(\omega; H) - l \|^2  $$
+    $$ C(\omega) =  \frac{1}{N} | f(\omega; H) - l |^2  $$
 is minimised for given $H$ and $l$ representing the training set and labels.
 Contrary to the linear model case, we have no guarantee that this expression is a convex function of $ \omega $ and there is no known algebraic method of finding optimal parameters.
 
@@ -497,7 +478,7 @@ where $h > 0$ is so called step size until some convergence criterion is met. Th
 Even assuming that the method converges (it can be made quite robust by tuning step size) There are two fundamental problems with the Gradient Descent method. First, as mentioned above, there is no guarantee of finding a global minimum. As dimension of the search space $ \Omega $ grows, chances of finding an initial guess that leads to the optimal solution tend to zero. Yet this is not as dangerous for the model as even a local minimum that is comparable with the global one should provide good accuracy.
 
 The second problem is computation of the gradient of $f$ becoming prohibitively expensive as $ \Omega $ becomes large. Recap that
-    $$ C(\omega) =  \frac{1}{N} \| f(\omega; H) - l \|^2 =
+    $$ C(\omega) =  \frac{1}{N} | f(\omega; H) - l |^2 =
        \frac{1}{N} \sum_{r \text{ row of } H} | f(\omega; r) - l_r |^2 $$
 so it takes time proportional to the size of the test set $N$ to evaluate $C$.
 Now to approximate the gradient of a general function with domain $ \Omega $ one needs to evaluate at least $C(\omega + t \omega_i)$ for every component of $ \omega $, hence to perform one iteration of Gradient Descent one requires $ \bO( N  \dim(\Omega) ) $ evaluations of $f$,
