@@ -1,15 +1,15 @@
-\documentclass[a4paper]{article}
-
-\usepackage{fullpage} % Package to use full page
+\documentclass[a4paper,11pt]{article}
+\usepackage[margin=2.5cm]{geometry}
 \usepackage{parskip} % Package to tweak paragraph skipping
-\usepackage{tikz} % Package for drawing
+
+\usepackage{tikz} % Package for figure management
 \usepackage{amsmath, amssymb}
 \usepackage[amsmath, amsthm, thmmarks]{ntheorem}
 \usepackage{hyperref}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
-\usepackage{csquotes}
 \usepackage{dirtytalk} % quotation marks
+\usepackage{csquotes}
 \usepackage{caption} % multiline captions
 
 \usepackage{biblatex} % bibliography
@@ -54,7 +54,7 @@
 
 Recently, both in research and industry data analysis we face many problems where the objective is to \say{guess} a function of multiple variables (features) based on its values at particular points (test samples). This essay focuses on two approaches, first linear multiple regression is discussed with rigorous algebraic background where we show uniqueness of the optimal solution and point towards ways of computing it through Moore-Penrose pseudoinverse.
 
-In the second part we illustrate limitations of such model and propose an alternative in a form of a neural network. We briefly discuss difficulties in finding optimal parameters and derive a numerical solution together with Back Propagation algorithm.
+In the second part we illustrate limitations of such model and propose an alternative in the form of a neural network. We briefly discuss difficulties in finding optimal parameters and derive a numerical solution together with Back Propagation algorithm.
 
 \subsection{Machine learning context}
 
@@ -64,25 +64,29 @@ Such problem setting is very common and many other formats of input data like te
 
 The discussion below could be easily generalised to the case with multiple output variables as each component could be treated as a separate real-valued function.
 
-The function $f$ is understood to approximate an unknown (complicated) process which we would like to model. This essay focuses on {\tt parametrised}, {\tt supervised} machine learning. Supervised means that we are given desired values of $f$ at certain points of its domain while parametrised means we assume $f$ can be determined by a vector of parameters $ \omega \in \Omega$ in some search space $\Omega$. We write $ f(\omega; x) $ meaning that once parameters are set, $f$ can be evaluated on an arbitrary point $x \in \R^n$ of its domain. The goal is then to decide on the right parametrisation and compute optimal parameters $\omega$ within $\Omega$. We refer to this optimisation process as {\tt training} a model.
+The function $f$ is understood to approximate an unknown (complicated) process which we would like to model.
+This essay focuses on {\tt parametrised}, {\tt supervised} machine learning.
+Supervised means that we are given desired values of $f$ at certain points of its domain while parametrised means we assume $f$ can be determined by a vector of parameters $ \omega \in \Omega$ in some search space $\Omega$.
+We write $ f(\omega; x) $ meaning that once parameters are set, $f$ can be evaluated on an arbitrary point $x \in \R^n$ of its domain.
+The goal is then to decide on the right parametrisation and compute optimal parameters $\omega$ within $\Omega$. We refer to this optimisation process as {\tt training} a model.
 
-A good practical example of such modelling is trying to predict price of a particular financial asset as a function of several other assets that may influence it with a complicated market mechanism. We can't describe this relation explicitly but we can hope to provide an approximation that follows general patterns of dependence between these prices.
+A good practical example of such modelling is trying to predict the price of a particular financial asset as a function of several other assets that may influence it with a complicated market mechanism. We can not describe this relation explicitly but we can hope to provide an approximation that follows general patterns of dependence between these prices.
 
-In context of machine learning we call the function $f$ a {\tt model} and we refer to the pairs of known input and output values as the {\tt training set}. It is often convenient to organise the training set into a matrix $H$ where each input value is represented by a row. Consequently we gather the corresponding values of $f$ (often called {\tt labels}) into a vertical vector $l$. Function $f$ is understood to act on every row of a matrix separately, resulting in a corresponding label, so that ideally:
+In the context of machine learning we call the function $f$ a {\tt model} and we refer to the pairs of known input and output values as the {\tt training set}. It is often convenient to organise the training set into a matrix $H$ where each input value is represented by a row. Consequently we gather the corresponding values of $f$ (often called {\tt labels}) into a vertical vector $l$. Function $f$ is understood to act on every row of a matrix separately, resulting in a corresponding label, so that ideally:
     $$ f(H) = l $$
 
-The usual way of measuring how well $f$ approximates the true process is evaluating $f(H)$ and comparing it to the labels $l$ using sum of squared errors made on each sample, in our matrix notation:
+The usual way of measuring how well $f$ approximates the true process is by comparing $f(H)$ to the labels $l$ using sum of squared errors made on each sample. In matrix notation:
 $$ | f(\omega; H) - l |^2 $$
 We refer to the above quantity as a {\tt training error} for parameters $\omega$.
 
-Nowadays, in many cases the dimension $n$ of the input space is quite high, often reaching thousands. Moreover, the cardinality of the training set used in practical applications is growing very quickly together with the amount of digital data that we store and process. It is not uncommon to have millions of training samples for a single model. Therefore discussion of possible models for $f$ is strictly connected with search for efficient numerical algorithms that find optimal parameters for $f$ given $H$ and $l$.
+Nowadays, in many cases the dimension $n$ of the input space is quite high, often reaching thousands. Moreover, the cardinality of the training set used in practical applications is growing very quickly together with the amount of digital data that we store and process. It is not uncommon to have millions of training samples for a single model. Therefore a discussion of possible models for $f$ is strictly connected with the search for efficient numerical algorithms that find optimal parameters for $f$ given $H$ and $l$.
 
-Although during the training only training set is available to measure error, at the end of the day we would like $F$ to approximate $f$ also on data points that are similar to the ones in $H$ but not identical.
+Although initially only the training set is available to measure error, eventually $f$ should also approximate the process on data points that are similar to the ones in $H$ but not identical.
 
 It comes out that due to random variation in the test sample, \say{simpler} models with slightly higher test error generalise better than the ones that tried to fit the noisy data more closely rather than following general patterns.
 The issue of poor generalisation of too \say{complicated} models is known as {\tt overfitting}.
 
-As a rule of thumb a model is more likely to overfit when it has more parameters in $ \omega $ \cite[pp112-113]{goodfellow}. Among models with the same parameter space $ \Omega $ the ones with smaller values of parameters generalise better \cite[p119]{goodfellow}. A good measure of that is the norm of parameter vector: $ | \omega | $.
+As a rule of thumb a model will overfit if it has more parameters \cite[pp112-113]{goodfellow}. Among models with the same parameter space the ones with smaller values of parameters (often measured by $ | \omega | $) tend to generalise better \cite[p119]{goodfellow}.
 % this is a bold oversimplification but... I don't really want to go there as I'm short on space anyway.
 
 \begin{figure}[b]
@@ -90,7 +94,7 @@ As a rule of thumb a model is more likely to overfit when it has more parameters
 \captionsetup{width=0.8\linewidth}
 \includegraphics[width=0.8\linewidth]{polyfit.png}
 \caption[]{
-    \textit{Polynomial least-squares models of varying degree. \\
+    \textit{Polynomial least-squares models with varying degree. \\
     Points generated by adding random noise to quadratic function;
     (left) insufficient number of parameters to follow the pattern;
     (centre) reasonable fit;
@@ -114,12 +118,12 @@ In the following two sections I explore algebraic background that shows $ w $ ca
 
 \footnote{This section is a selection of statements from introduction in Albert's monograph on M-P pseudoinverse \cite[pp6-12]{albert}. Theorem proofs are adapted from there while Lemmas are my take on exercises.}
 %
-We start by stating several theorems closely related to the familiar notions of vector (sub)space, range and null-space. The first result provides a useful way of decomposing a vector into two components, exactly one lying inside a vector subspace. Uniqueness of such decomposition will be useful when showing uniqueness of our optimal solution for the regression problem.
+We start by stating several theorems closely related to the familiar notions of vector (sub)space, range and null-space. The first result provides a useful way of decomposing a vector into two components, with exactly one lying inside a vector subspace. Uniqueness of such decomposition will be useful when showing uniqueness of our optimal solution for the regression problem.
 
 \subsection{Orthogonal decomposition}
 Two vectors are perpendicular (denoted by $ a \perp b$) if and only if their scalar product is 0. Given a vector subspace $V \in \R^n$ we can think about vectors perpendicular to all its elements and denote them as $z \perp V$. We call a set of all such vectors the orthogonal complement of $V$:
 $$ V^\perp := \{ v \in \R^n : v \perp V\} $$
-Notice that $V^\perp \cap V = \{0\}$ and that $V^\perp$ is itself a vector subspace since scalar product is linear. The following theorem provides a widely useful decomposition of an arbitrary vector:
+Notice that $V^\perp \cap V = \{0\}$ and that $V^\perp$ is itself a vector subspace since the scalar product is linear. The following theorem provides a widely useful decomposition of an arbitrary vector:
 
 \begin{theorem}[Orthogonal decomposition] \label{thm:projection}
     Let $z \in \R^n$ and $V \subset \R^n$ be a vector subspace. Then
@@ -158,24 +162,24 @@ allows us to conclude an important property of the complement defined above:
     hence $ V = (V^\perp)^\perp$.
 \end{proof}
 
-Once we have defined an orthogonal complement it comes handy to relate them with notions of null space and range.
+Once we have defined an orthogonal complement it is useful to relate them with notions of null space and range.
 The key result is a characterisation of a null space presented below.
 Let $\Nu(H)$ resp. $\Ra(H)$ denote the null space resp. the range of a matrix $H$.
 
 \begin{theorem} \label{thm:charact_nullspace}
-    For any matrix $H \in \Mat{n}{m}$ the null space of $H$ is equal to perpendicular complement of $H^T$ in $\R^m$, i.e.
-    $$\Nu(H) = \Ra^\perp(H^T)$$
+    For any matrix $H \in \Mat{n}{m}$ the null space of $H$ is equal to perpendicular complement of range of $H^T$ in $\R^m$, i.e.
+    $$\Nu(H) = \Ra^\perp(H^T) ~~\text{ where }~~ \Ra^\perp(H^T) := (\Ra(H^T))^\perp$$
 \end{theorem}
 
 \begin{proof}
     Pick any $x \in \Nu(H)$ we have $H x = 0$, implying $ y^T H x = 0$ for any $y \in \R^n$. Now
-    $$  y^T H x = (H^T y )^T x = 0$$
-    which means that $x$ is orthogonal to all vectors of the form $ H^T y $, i.e. $ x \perp \Ra(H^T)$, showing $ \Nu(H) \subset \Ra^\perp(H^T)$. To see the other inclusion take $ y \in \Ra(H^T) $ and conclude from the above equation that $ H x = 0$, i.e. $ x \in \Nu(H)$.
+    \begin{equation}\label{eq:proof_nsp_char}
+        y^T H x = (H^T y )^T x = 0
+    \end{equation}
+    which means that $x$ is orthogonal to all vectors of the form $ H^T y $, i.e. $ x \perp \Ra(H^T)$, showing $ \Nu(H) \subset \Ra^\perp(H^T)$. To see the other inclusion take $ y \in \Ra(H^T) $ and conclude from equation \eqref{eq:proof_nsp_char} that $ H x = 0$, i.e. $ x \in \Nu(H)$.
 \end{proof}
-A very similar proof leads to a complementary statement:
-\begin{corollary} \label{cor:charact_range}
+Computing complement of both sides and applying Lemma \ref{lem:double_perp} gives an immediate corollary:
     $$\Nu^\perp(H) = \Ra(H^T)$$
-\end{corollary}
 
 \subsection{Symmetric matrices}
 We close this section with a few remarks on symmetric matrices and subspaces they generate. The importance of these results comes from the fact that symmetric matrices are always diagonalizable in $\R$ and hence play an important role in finding eigenvalues which come out to be closely related to our regression optimisation problem. 
@@ -202,7 +206,7 @@ Matrices of the form $H^T H$ and $H H^T$ are symmetric for arbitrary $H \in \Mat
 \end{lemma}
 
 \begin{proof}
-    We'll show mutual inclusion for the first equality. To prove that $\Nu(H) \subset \Nu(H^T H)$ pick $x$ such that $H x = 0$. Multiplying both sides by $H^T$ we get
+    We will show mutual inclusion for the first equality. To prove that $\Nu(H) \subset \Nu(H^T H)$ pick $x$ such that $H x = 0$. Multiplying both sides by $H^T$ we get
     $$ H^T H x = H^T 0 = 0 $$
     implying $x \in \Nu(H^T H) $.
     To show the other inclusion, pick $x \neq 0$ such that $H^T H x = 0$. Multiply from the right by $x^T$ to get
@@ -239,9 +243,9 @@ Linear Algebra addresses a fundamental problem of solving a system of linear equ
 $$ A x - b = 0$$
 by introducing a notion of matrix inverse. If $x$ is a vector of unknown variables and certain conditions are met (including $A$ being a square matrix) one can obtain the solution as: $ x = A^{-1} b $. As our problem of Multivariate Regression is almost identical in structure
 $$ \inf | T x - l | $$
-we would be interested in finding an analogous operation, say $ T \to T^+$ such that $ w = T^+ l$ where $w$ is a vector of coefficients minimising the training error. Unfortunately we cannot use the matrix inverse as in all practical circumstances we expect $T$ to be rectangular (amount of test samples should be much bigger than number of parameters)! On the other hand we don't hope to find an exact solution $ T w = l$ but rather just make the vectors $T w$ and $l$ ``as close as possible" under the standard norm.
+we would be interested in finding an analogous operation, say $ T \to T^+$ such that $ w = T^+ l$ where $w$ is a vector of coefficients minimising the training error. Unfortunately we cannot use the matrix inverse as in all practical circumstances we expect $T$ to be rectangular (amount of test samples should be much bigger than number of parameters)! On the other hand we do not hope to find an exact solution $ T w = l$ but rather just make the vectors $T w$ and $l$ ``as close as possible" under the standard norm.
 
-This trade-of between precision of the solution and its guaranteed existence motivates defining the Moore-Penrose pseudoinverse.
+This trade-off between precision of the solution and its guaranteed existence motivates defining the Moore-Penrose pseudoinverse.
 
 \subsection{Derivation}
 First of all, we should make sure that the operator $T^+$ can be well defined, i.e. that given a multiple regression problem there exists a single vector of "the best" coefficients, minimising the training error.
@@ -286,13 +290,12 @@ With a matrix $H \in \Mat{n}{m}$ and $z \in \R^n$ the set
     The only difference is the component lying in the null-space of $H$. Clearly
     $$ | a |^2 = | a_\perp |^2 + |a_\pll |^2 \geq |a_\perp |^2$$
     so norm of $a$ is minimal if and only if $a_\pll = 0$, hence only one vector $a_\perp = \hat{x} \in X$ minimises the norm.
-    By Corollary \ref{cor:charact_range} we obtain $ \hat{x} \in \Nu^\perp (H) = \Ra(H^T) $ as required.
+    By corollary of \ref{thm:charact_nullspace} we obtain $ \hat{x} \in \Nu^\perp (H) = \Ra(H^T) $ as required.
 \end{proof}
-Now as we have shown our solution exists and is unique if we settle for minimal norm as our secondary criterion of choice, we can construct an explicit formula for $a$ in terms of $z$ and $H$, so called Moore-Penrose pseudoinverse.
+Now as we have shown the solution exists and is unique if we settle for minimal norm as our secondary criterion of choice, we can construct an explicit formula for $a$ in terms of $z$ and $H$, so called Moore-Penrose pseudoinverse.
 
 % there is a theorem 3.2 (normal equations) proven here in the book yet the derivation of MP doesn't seem to depend on it.
 % Basically it says that  a can be obtained by picking y s.t. H^T H H^T y = H^T z and then a = H^T y.
-% There is about a page of faff around existence and uniqueness.
 
 The following two lemmas will guarantee that the limit involved in this definition exists:
 
@@ -301,14 +304,14 @@ The following two lemmas will guarantee that the limit involved in this definiti
     \label{thm:invertible}
 \end{lemma}
 \begin{proof}
-    Reasoning by contradiction suppose that for some $x \in \R^n - \{0\}$ we have
+    Reasoning by contradiction suppose that for some $x \in \R^n \setminus \{0\}$ we have
     $$ (H^T H + \delta^2  I_m) x = 0 $$ % vector
 Multiplying both sides by $x^T$ we obtain
     $$ x^t (H^T H + \delta^2  I_m) x = 0 $$ % scalar
     $$ x^T H^T H x + \delta^2 x^T x = 0 $$
-    $$ | H x | + \delta^2 | x | \leq \delta^2 | x | = 0 $$
+    $$ | H x |^2 + \delta^2 | x |^2 = 0 $$
 This is a contradiction as $ x \neq 0 \implies | x | > 0 $ and $ \delta^2 > 0$ by assumption.
-Hence $\Nu(H^T H + \delta^2  I_m) = \{0\} $, i.e. it is invertible.
+Hence $\Nu(H^T H + \delta^2  I_m) = \{0\} $ and so the matrix is invertible.
 \end{proof}
 
 \begin{lemma}\label{lem:limit_existence_1}
@@ -377,9 +380,7 @@ We have seen in Lemma \ref{lem:charact_sym_nullspace} that $H^T H$ is symmetric 
 
 \subsection{Properties and applications}
 
-Below we present without proof several results about the properties of the pseudoinverse itself and its applications
-
-The following corollary is very useful as it expresses various projections discussed in the previous sections in terms of the pseudoinverse; once $ H^+ $ is known, the projections can be computed just by matrix multiplication. The proof is based on Theorem \ref{thm:mp_solves_regression} combined with various characterisations of ranges and null-spaces we have derived above.
+Here we present without proof several results about the properties of the pseudoinverse itself and its applications. The following corollary is very useful as it expresses various projections discussed in the previous sections in terms of the pseudoinverse; once $ H^+ $ is known, the projections can be computed just by matrix multiplication. The proof is based on Theorem \ref{thm:mp_solves_regression} combined with various characterisations of ranges and null-spaces we have derived above.
 
 \begin{lemma}
     For any vectors $z$ and $x$
@@ -435,21 +436,21 @@ This phenomenon makes it challenging to compute pseudoinverse directly from the 
     $$ H^+ = V \Sigma^+ U^* $$
 \end{lemma}
 
-\pagebreak
+% \pagebreak
 
 \section{Neural networks}
 
 \footnote{This section is my summary of Highams' article \cite{higham} and an extensive book by Goodfellow et all. \cite{goodfellow} in comparison with regression models. Statements and proofs on Back Propagation are taken from \cite{higham}}
 %
-The second part of this essay is dedicated to an alternative method of approximating a function $ f : \R^n \to \R$, based on prior knowledge of $f$ evaluated at the training set. The key difference is that we now allow our estimate to be non-linear. Of course expanding search space means we use much more parameters to describe $f$, in turn making the optimisation problem significantly harder to solve. Only modern advances in computer algebra and computing power made such approach feasible in real-life scenarios.
+The second part of this essay is dedicated to an alternative method of approximating a function $ f : \R^n \to \R$, based on prior knowledge of $f$ evaluated at the training set. The key difference is that we now allow our estimate to be non-linear. Of course expanding the search space means we use many more parameters to describe $f$, in turn making the optimisation problem significantly harder to solve. Only modern advances in computer algebra and computing power made such approach feasible in real-life scenarios.
 
-A particular widely used model for f is so called Neural Network. It's worth to note that despite a very suggestive name this model is only loosely inspired by biological structure of our brains and ...
+A widely used model for $f$ is so called Neural Network. It is worth noting that despite a very suggestive name this model is only loosely inspired by biological structure of our brains and does not aspire to reproduce our way of solving problems. This essay treats Neural Networks purely as a way of composing functions, ignoring the historical background.
 
 \subsection{Shortcomings of a linear model}
 To get a general idea about the techniques used to construct optimal search space, let us analyse several shortcomings of a linear model and propose modifications and additional parameters that allow more robust fit.
 
 \subsubsection{Step function}
-Linear function is unable to model situations when the outcome depends 'discretely' on one of the input parameters.
+A linear function is unable to model situations when the outcome depends 'discretely' on one of the input parameters.
 
 For example the step function with threshold $c \in \R$
 $$ f(x) =
@@ -457,7 +458,7 @@ $$ f(x) =
     0,& \text{if } x\leq c\\
     1,& \text{if } x > c
 \end{cases}$$
-Can't be well approximated by $L(x) = a x  + b$.
+can not be well approximated by $L(x) = a x  + b$.
 
 \begin{figure}[bph]
     \centering
@@ -465,7 +466,7 @@ Can't be well approximated by $L(x) = a x  + b$.
     \caption{\textit{Attempt to fit a linear model to samples from (noisy) step function with threshold at 0.}}
 \end{figure}
 
-In order to model such behaviour, we'll introduce to our model so called activation function - a non-linear component  that imitates the step function. As optimisation procedures often rely on differentiation with respect to $x$, a common choice of activation function is the following:
+In order to model such behaviour, we will introduce to our model so called activation function - a non-linear component  that imitates the step function. As optimisation procedures often rely on differentiation with respect to $x$, a common choice of activation function is the following:
 
 \begin{definition}[Sigmoid function]
     $$ \sigma(x) = \frac{1}{1 + e^{-x}}$$
@@ -490,27 +491,28 @@ The components $ (\sigma \circ L_{i}) $ are called layers of the network $f$ wit
 
 \section{Training a Neural Network}
 
-Assuming we have specified the number of layers $ \La $ and dimensions $ n_2, n_3, \ldots, n_{\La-1} $ of all the intermediate vector spaces,
-$f$ is parameterised by values of $ b_1, b_2, \ldots, b_{\La} $ and $ W_1, W_2, \ldots, W_{\La} $.
-We refer to all these parameters together as $ \omega \in \Omega $, following our notation from section 1.
-As in the case of linear model, we take the sum of squared residual norms as our error function, hence the training algorithm should find $ \omega $ such that
+Assuming we have specified the number of layers $ \La $ and their dimensions $ n_2, n_3, \ldots, n_{\La-1} $, model $f$ is parameterised by values of $ b_1, b_2, \ldots, b_{\La} $ and $ W_1, W_2, \ldots, W_{\La} $.
+We refer to all these parameters together as $ \omega \in \Omega $.
+As in the case of linear model, the sum of squared residual norms is our error function, so the training algorithm should find $ \omega $ such that
     $$ C(\omega) =  \frac{1}{N} | f(\omega; H) - l |^2  $$
 is minimised for given $H$ and $l$ representing the training set and labels.
 Contrary to the linear model case, we have no guarantee that this expression is a convex function of $ \omega $ and there is no known algebraic method of finding optimal parameters.
 
 \subsection{Gradient Descent}
-A common approach for numerically approximating the optimal solution to such problems is based on the observation that given a differentiable function, one can find a (local) minimum by iteratively moving in the direction of the steepest descent, i.e. in the direction of negative gradient $ - \nabla C  = - ( \frac{\partial C}{\partial \omega_1}, \frac{\partial C}{\partial \omega_2, }, ..., \frac{\partial C}{\partial \omega_n})$. Given an initial guess $x_0 \in \Omega$ such algorithm computes
-    $$ x_{n+1} = x_{n} - \nabla C (x_n) h $$
-where $h > 0$ is so called step size until some convergence criterion is met. This optimisation algorithm is known as Gradient Descent.
+Since $C$ is a differentiable function, one can find its (local) minimum by iteratively moving in the direction of the steepest descent, i.e. in the direction of negative gradient
+$ - \nabla C  = - ( \frac{\partial C}{\partial \omega_1}, \frac{\partial C}{\partial \omega_2, }, ..., \frac{\partial C}{\partial \omega_n})$.
+Given an initial guess $\omega_0 \in \Omega$ such algorithm computes
+    $$ \omega_{n+1} = \omega_{n} - \nabla C (\omega_n) h $$
+where $h > 0$ is so called step size. This optimisation algorithm is known as Gradient Descent.
 
-Even assuming that the method converges (it can be made quite robust by tuning step size) There are two fundamental problems with the Gradient Descent method. First, as mentioned above, there is no guarantee of finding a global minimum. As dimension of the search space $ \Omega $ grows, chances of finding an initial guess that leads to the optimal solution tend to zero. Yet this is not as dangerous for the model as even a local minimum that is comparable with the global one should provide good accuracy.
+Even assuming that the method converges (it can be made quite robust by tuning step size), there are two fundamental problems. First, there is no guarantee of finding a global minimum. As dimension of the search space $ \Omega $ grows, finding an initial guess that leads to the optimal solution gets harder. Yet this is not as detrimental since even a local minimum can provide good accuracy.
 
-The second problem is computation of the gradient of $f$ becoming prohibitively expensive as $ \Omega $ becomes large. Recap that
+The second problem is that computation of $\nabla C$ becomes prohibitively expensive for large $ \Omega $. Recall
     $$ C(\omega) =  \frac{1}{N} | f(\omega; H) - l |^2 =
        \frac{1}{N} \sum_{r \text{ row of } H} | f(\omega; r) - l_r |^2 $$
 so it takes time proportional to the size of the test set $N$ to evaluate $C$.
-Now to approximate the gradient of a general function with domain $ \Omega $ one needs to evaluate at least $C(\omega + t \omega_i)$ for every component of $ \omega $, hence to perform one iteration of Gradient Descent one requires $ \bO( N  \dim(\Omega) ) $ evaluations of $f$,
-each taking at least $ O( \dim(\Omega))$ elementary operations, yielding total time complexity of $ \bO( N \dim(\Omega)^2)$ per iteration. With most of interesting problems featuring training sets exceeding $ 10^6 $ samples and $ 10^3 $ parameters, this will quickly exhaust most computational budgets.
+Naive approximation of $ \nabla f$ needs to evaluate at least $C(\omega + t \omega_i)$ for every component of $ \omega $, hence one iteration of Gradient Descent requires $ \bO( N  \dim(\Omega) ) $ evaluations of $f$,
+each taking at least $ O( \dim(\Omega))$ elementary operations, yielding total time complexity of $ \bO( N \dim(\Omega)^2)$ per iteration. With most of interesting problems featuring training sets exceeding $ 10^6 $ samples and $ 10^3 $ parameters, this will quickly exhaust computational budgets.
 
 \subsection{Stochastic Gradient}
 Also known as Stochastic Gradient Descent is a modification of the above algorithm that tries to lower computational complexity per iteration. To do so, instead of evaluating $C(\omega)$ it approximates it by taking a random sample from the training set and calculating the mean error only over that sample. In each step a new sample is chosen, grounded in the observation that if $ S \subset T $ with $ | S | = M < |T| $ is a randomly chosen subset of $T$ then
@@ -522,7 +524,7 @@ so in the long run the algorithm will also converge to a local minimum.
 \subsection{Back Propagation}
 As presented in \cite[pp11-14]{higham} another way to improve the asymptotic complexity of the training algorithm is to leverage the structure of $f$ to compute the gradient $ \frac{\partial C}{\partial \omega} $ efficiently.
 
-To keep notation under control we'll move layer indices to the superscript, so that $W_i$ becomes $ W^i $. Subscripts are used to denote components. Let us define some helper variables:
+To keep notation under control we will move layer indices to the superscript, so that $W_i$ becomes $ W^i $. Subscripts are used to denote components. Let us define some helper variables following Highams' article:
 \begin{definition}\label{def:back_prop_helper}
 For $ l \in {1, 2, \ldots, \La} $:
     $$ z^l = W^l a^{l-1} + b^{l} $$
@@ -547,11 +549,11 @@ With $\La$ denoting the output layer and with $ 1 \leq l \leq \La - 1$
 \end{equation}
 \end{lemma}
 
-Note: this recursive definition starts on the last layer and goes to the first, motivating the name Back Propagation.
+Note: the definition starts on the last layer and goes to the first, motivating the name.
 
 \begin{proof}
-    Note that from the structure of the neural network we have
-    $a^{\La} = \sigma(z^{\La})$ and hence using the chain rule
+    Following \cite{higham} by definition of the network 
+    $a^{\La} = \sigma(z^{\La})$ and by the chain rule:
     $$ \Part{a_j^{\La}}{z_j^{\La}} = \sigma' (z_j^{\La}) $$
     
     On the other hand, since $C$ is a sum of squared errors:
@@ -575,7 +577,7 @@ Note: this recursive definition starts on the last layer and goes to the first, 
     This is the $j$-th component of equation (\ref{eq:previous_sigma}).
 \end{proof}
 
-With this representation of $\delta^l$ we are able to compute interesting partial derivatives of $C$:
+With this representation of $\delta^l$ we are able to compute partial derivatives of $C$ of our interest:
 \begin{lemma}
     With notation defined above and $ 2 \leq l \leq \La$
      $$ \Part{C}{b_J^l} = \delta_j^l $$
@@ -587,6 +589,16 @@ With this representation of $\delta^l$ we are able to compute interesting partia
 
 These two lemmas allows us to compute all partial derivatives of $C$ using only component-wise multiplication and other elementary matrix operations on $a^l$ and $\delta^l$, both of which can be computed iteratively by traversing the network once (backward in case of $\delta^l$). This is a significant performance improvement from trying to numerically estimate the partial derivatives by slightly changing a network parameter and computing change in $C$ from scratch.
 
+\section{Summary}
+The essay described basics of of two important modelling tools: linear regression and neural networks.
+The former can be relatively easily described in terms of Linear Algebra which we have used to show how the notion of matrix inverse can be generalised to allow approximate solution to a set of equations.
+We expressed such generalised inverse as a limit and pointed towards numerically friendly ways of deriving it from singular value decomposition.
+
+Shortcomings of linear models and desire to automate the process of feature engineering motivates search for more sophisticated algorithms.
+We focused on a widely used model of a neural network, discussing its structure and growing complexity of the underlying optimisation problem.
+We presented a numerical optimisation procedure based on steepest gradient descent together with two means of reducing its time complexity: sub-sampling with stochastic gradient and efficient partial derivative computation known as Back Propagation.
+
+The area of machine learning seems to be a fascinating combination of Statistics, Algebra and Algorithmics that has been lively developed in recent years. Wide availability of computers and open source libraries made it easy to experiment with various models. It is therefore vital to study in detail the mathematical principles underpinning these implementations and statistical tools allowing judgement on usefulness of the results.
 
 \printbibliography
 \end{document}
